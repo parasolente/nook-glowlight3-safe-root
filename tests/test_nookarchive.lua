@@ -44,6 +44,52 @@ end
 eq(redirected:public_request("https://annas-archive.gl", "https://annas-archive.gl/search"), nil)
 eq(requests, 1)
 
+eq(Client.session_cookie("other=x; Path=/, aa_account_id2=session-value; Expires=Wed, 21 Oct 2030 07:28:00 GMT; HttpOnly"), "aa_account_id2=session-value")
+eq(Client.session_cookie({"aa_account_id2=one; Path=/", "aa_other=two; Secure"}), "aa_account_id2=one; aa_other=two")
+eq(Client.session_cookie("unrelated=value; Path=/"), nil)
+eq(Client.session_cookie('aa_account_id2="unsafe"; Path=/'), nil)
+eq(Client.new("test-ca.pem"):request("https://outside.example/", nil, {
+    origin="https://annas-archive.gl", cookie="aa_account_id2=example-session",
+}), nil)
+
+package.loaded.util = { htmlEntitiesToUtf8 = function(s) return s end }
+local authenticated, logins, searches = Client.new("test-ca.pem"), 0, 0
+function authenticated:request(address, sink, options)
+    eq(address:find("test%+key", 1, true), nil)
+    if address == "https://annas-archive.gl/account/" then
+        logins = logins + 1
+        eq(options.body, "key=test%2Bkey")
+        eq(options.cookie, nil)
+        return {code=302, headers={["set-cookie"]="aa_account_id2=account-session"}, body=""}
+    end
+    eq(options.origin, "https://annas-archive.gl")
+    eq(options.cookie, "aa_account_id2=account-session")
+    searches = searches + 1
+    return {code=200, headers={}, body=html}
+end
+eq(#authenticated:search("https://annas-archive.gl", "example", "epub", 1, "test+key"), 1)
+eq(#authenticated:search("https://annas-archive.gl", "example", "epub", 2, "test+key"), 1)
+eq(logins, 1)
+eq(searches, 2)
+eq(authenticated.session.key, nil)
+authenticated:clear_session()
+eq(authenticated.session, nil)
+
+local expired, renewals, attempts = Client.new("test-ca.pem"), 0, 0
+function expired:request(address, sink, options)
+    if address:match("/account/$") then
+        renewals = renewals + 1
+        return {code=302, headers={["set-cookie"]="aa_account_id2=session" .. renewals}, body=""}
+    end
+    attempts = attempts + 1
+    if attempts == 1 then return {code=403, headers={}, body="DDoS-Guard"} end
+    eq(options.cookie, "aa_account_id2=session2")
+    return {code=200, headers={}, body=html}
+end
+eq(#expired:search("https://annas-archive.gl", "example", "epub", 1, "test-key"), 1)
+eq(renewals, 2)
+eq(attempts, 2)
+
 -- Verify chain validation is requested and a bad DNS SAN fails before HTTP.
 local closed, verified = false, false
 local fake_socket = { settimeout = function() return 1 end, connect = function() return 1 end,
@@ -63,4 +109,4 @@ local connected = connection:connect("annas-archive.gl", 443)
 eq(connected, nil)
 eq(verified, true)
 eq(closed, true)
-print("NOOK Archive: URL, redirect, certificate hostname, parser and TLS adapter checks passed")
+print("NOOK Archive: URL, redirect, session, cookie isolation, parser and TLS checks passed")

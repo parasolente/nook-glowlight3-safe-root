@@ -94,10 +94,23 @@ function Client:connection(expected_host)
     return conn
 end
 
-function Client:request(address, sink)
+function Client:request(address, sink, options)
+    options = options or {}
     local host = address:match("^https://([a-z0-9%.%-]+)/")
     if not host then return nil, "HTTPS URL required" end
+    if (options.cookie or options.body) and options.origin ~= "https://" .. host then
+        return nil, "Authenticated requests must stay on the selected origin."
+    end
     local http, socketutil = require("socket.http"), require("socketutil")
+    local headers = {
+        ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36 NOOKArchive/0.2",
+        ["Accept-Encoding"] = "identity", ["Accept-Language"] = "es,en;q=0.8",
+    }
+    if options.cookie then headers.Cookie = options.cookie end
+    if options.body then
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["Content-Length"] = tostring(#options.body)
+    end
     local chunks, bytes, start = {}, 0, os.time()
     local function bounded_sink(chunk, err)
         if os.time() - start > 45 then return nil, "Request timeout" end
@@ -111,8 +124,9 @@ function Client:request(address, sink)
     end
     socketutil:set_timeout(12, 45)
     local ok, result, code, headers = pcall(http.request, {
-        url = address, method = "GET", redirect = false,
-        headers = { ["User-Agent"] = "NOOKArchive/0.1 KOReader", ["Accept-Encoding"] = "identity" },
+        url = address, method = options.body and "POST" or "GET", redirect = false,
+        headers = headers,
+        source = options.body and require("ltn12").source.string(options.body) or nil,
         create = function() return self:connection(host) end,
         sink = bounded_sink,
     })
@@ -121,33 +135,91 @@ function Client:request(address, sink)
     return { code = tonumber(code), headers = headers or {}, body = table.concat(chunks), bytes = bytes }
 end
 
-function Client:public_request(origin, address)
+function Client:public_request(origin, address, cookie)
     for _ = 1, 5 do
         if address:sub(1, #origin + 1) ~= origin .. "/" then
             return nil, "The search redirects outside the selected domain. Update the domain manually if needed."
         end
-        local response, err = self:request(address)
+        local response, err = self:request(address, nil, { origin = origin, cookie = cookie })
         if not response then return nil, err end
         if not ({ [301] = true, [302] = true, [303] = true, [307] = true, [308] = true })[response.code] then
             return response
         end
         if not response.headers.location then return nil, "The search redirect has no destination." end
+        if response.headers.location:match("[?&]check=1[&]?") then return response end
         address = require("socket.url").absolute(address, response.headers.location)
     end
     return nil, "Too many search redirects."
 end
 
-function Client:search(origin, query, extension, page)
+function Client.is_challenge(response)
+    local lower = (response.body or ""):lower()
+    return response.code == 403 or response.code == 401
+        or lower:find("/cdn%-cgi/challenge") ~= nil
+        or lower:find("cf%-chl%-") ~= nil or lower:find("ddos%-guard") ~= nil
+        or (response.headers.location or ""):match("[?&]check=1[&]?") ~= nil
+end
+
+function Client.session_cookie(raw)
+    if type(raw) == "table" then raw = table.concat(raw, ", ") end
+    if type(raw) ~= "string" then return nil end
+    local values, seen = {}, {}
+    -- A comma in an Expires date is not a cookie separator unless followed by
+    -- an aa_ cookie name. Keep only account cookies, never their attributes.
+    for name, value in (";" .. raw):gmatch("[,;]%s*(aa_[%w_%-]+)=([^;,%s]+)") do
+        if not seen[name] and not value:find('["\\%c]') then
+            seen[name] = true
+            values[#values + 1] = name .. "=" .. value
+        end
+    end
+    return #values > 0 and table.concat(values, "; ") or nil
+end
+
+function Client:clear_session()
+    self.session = nil
+end
+
+function Client:login(origin, key, force)
+    if Client.origin(origin) ~= origin or type(key) ~= "string" or key == "" then
+        return nil, "Introduce tu token en Anna’s Archive → Token de miembro."
+    end
+    if not force and self.session and self.session.origin == origin
+        and os.time() - self.session.at < 3600 then return self.session.cookie end
+    self:clear_session()
+    local response, err = self:request(origin .. "/account/", nil, {
+        origin = origin, body = "key=" .. Client.encode(key),
+    })
+    if not response then return nil, err end
+    local cookie = Client.session_cookie(response.headers["set-cookie"])
+    if not cookie then return nil, "No se pudo iniciar sesión. Revisa el token o la disponibilidad del sitio." end
+    if response.code ~= 200 and response.code ~= 302 and response.code ~= 303 then
+        return nil, "El sitio no aceptó el inicio de sesión."
+    end
+    self.session = { origin = origin, cookie = cookie, at = os.time() }
+    return cookie
+end
+
+function Client:search(origin, query, extension, page, key)
     local url = origin .. "/search?q=" .. Client.encode(query)
         .. "&page=" .. tostring(page or 1)
     if extension ~= "all" then url = url .. "&ext=" .. extension end
-    local response, err = self:public_request(origin, url)
-    if not response then return nil, err end
-    local lower = response.body:lower()
-    if lower:find("/cdn%-cgi/challenge") or lower:find("cf%-chl%-") or lower:find("ddos%-guard") then
-        return nil, "El sitio exige una verificación de navegador. La búsqueda directa no está disponible. Puedes usar un MD5 conocido; el token no se ha enviado."
+    local response, err
+    for attempt = 1, key and 2 or 1 do
+        local cookie
+        if key then
+            cookie, err = self:login(origin, key, attempt == 2)
+            if not cookie then return nil, err end
+        end
+        response, err = self:public_request(origin, url, cookie)
+        if not response then return nil, err end
+        if not Client.is_challenge(response) then break end
+        self:clear_session()
     end
-    if response.code ~= 200 then return nil, "La búsqueda devolvió HTTP " .. tostring(response.code) .. ". El token no se ha enviado." end
+    if Client.is_challenge(response) then
+        return nil, key and "El sitio también bloqueó la sesión autenticada; la búsqueda no está disponible."
+            or "La búsqueda anónima está bloqueada. Configura tu token para intentar buscar con una sesión de tu cuenta."
+    end
+    if response.code ~= 200 then return nil, "La búsqueda devolvió HTTP " .. tostring(response.code) .. "." end
     return Client.results(response.body, require("util").htmlEntitiesToUtf8)
 end
 

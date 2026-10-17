@@ -44,6 +44,7 @@ function Archive:save_options()
 end
 
 function Archive:set_key(key)
+    self.client:clear_session()
     self.key = key ~= "" and key or nil
     if not self.key then
         if self.key_path then os.remove(self.key_path) end
@@ -122,7 +123,7 @@ function Archive:search(query, page)
     if not query or query:match("^%s*$") then return end
     self.last_query = query
     self:run("Buscando en Anna’s Archive…", function()
-        return self.client:search(self.options.origin, query, self.options.extension, page)
+        return self.client:search(self.options.origin, query, self.options.extension, page, self.key)
     end, function(results)
         if #results == 0 then message("Sin resultados. La página también puede haber cambiado de formato."); return end
         local items = {}

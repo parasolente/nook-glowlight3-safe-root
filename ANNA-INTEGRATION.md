@@ -36,3 +36,13 @@ Keep `cacert.pem` and its third-party notice with the plugin. Tests run from thi
 lua5.1 tests/test_nookarchive.lua
 luac5.1 -p koreader/nookarchive.koplugin/client.lua koreader/nookarchive.koplugin/main.lua
 ```
+
+## Authenticated search development
+
+After the anonymous search blocker, a normal account-session approach was identified by reviewing the [bitesized client](https://github.com/bitesized/annas-archive-api/blob/main/lib/annas.js) and the [Emacs integration](https://github.com/benthamite/annas-archive). They describe a form POST to `/account/` with a `key` field, followed by account-cookie search requests. No third-party service or their code is deployed by this project.
+
+The NOOK plugin now implements that exchange directly with the selected HTTPS origin. Account cookies are kept only in memory for up to an hour; changing the token clears them. Search sends only the derived cookie, and stale sessions receive at most one renewal attempt. Both POST credentials and cookies are refused if their expected origin differs from the request origin. Download hosts receive neither the login token nor the search cookie.
+
+Offline tests cover cookie extraction with Expires commas, session reuse, one-time session renewal, credential-free login URLs, and refusal to send authenticated requests outside the selected origin. Native authenticated search and member downloads remain pending at this checkpoint. The user authorized an account key for testing; its value must never appear in this repository or diagnostics.
+
+`enter_token_on_device.py` reads a key without terminal echo and enters individual characters into an already-verified password dialog. It does not submit the dialog, save a host credential file, or pass the complete key as a process argument. It requires explicit device serial selection and a verified ready dialog.
