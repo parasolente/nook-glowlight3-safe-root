@@ -43,3 +43,9 @@ At the user's request, Total Commander 3.62d was downloaded from the developer's
 ## Additional apps and standalone Duck.ai research
 
 The user requires Duck.ai without account/API key, configurable provider URLs, or a companion computer. Anonymous host HTTPS bootstrap succeeded, but a complete chat has not been shown. A stock-browser device test found an untrusted certificate authority for the current Duck.ai certificate; it was not bypassed. A new local offline feature-check page confirmed Chromium 30 lacks required modern JavaScript features. No Duck.ai client or additional candidate app was installed. Version-specific notes/keyboard/sudoku APK manifests were inspected; see [APP-CANDIDATES.md](APP-CANDIDATES.md) and [DUCKAI-RESEARCH.md](DUCKAI-RESEARCH.md).
+
+## Browser alternatives and API chat
+
+Bromite 81 and Opera Mini 53 were tested after correcting the overly narrow initial browser assessment. Bromite crashed in EGL compositor initialization. Opera Mini’s UI ran; the user took over manual testing before a Duck.ai conversation was demonstrated. At the user’s request, Firefox, Opera Mini and Bromite were then uninstalled with three explicit Success results, and browser staging files were removed. See BROWSER-ALTERNATIVES.md.
+
+The user supplied a configurable HTTPS base URL, model and API key and authorized a standalone KOReader API client. The independent nookchat plugin was implemented and installed. Both host and actual on-device native HTTPS calls returned text from the requested model. The Nook visibly displayed the Spanish reply; app-private credential storage was reread and mode 0600 confirmed. No key is in this repository, shared settings or public diagnostics. The temporary loopback-only USB provisioning bridge was removed. See NOOK-CHAT.md.

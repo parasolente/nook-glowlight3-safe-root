@@ -1,0 +1,12 @@
+# Additional browser tests and removal
+
+The earlier stock-browser and Firefox failures did not prove that every possible browser would fail. Two other browser engines/approaches were subsequently tested without permanent root. No successful Duck.ai conversation was demonstrated.
+
+- **Bromite 81.0.4044.83 ARM**: downloaded from the [official release](https://github.com/bromite/bromite/releases/tag/81.0.4044.83), minimum SDK 19, 54,275,009 bytes. SHA-256 `3e3b0ef4db34c7be50d9ad5d1f124cf61069f941eebcba4162bcae0af5cc0625` matched its separately published release checksum and full device readback. Installation succeeded; the toolbar appeared, but page startup crashed with an EGL/offscreen compositor context failure. This was not a successful web-page test.
+- **Opera Mini 53.1.2254.55490**: [publisher archive](https://ftp.opera.com/pub/opera/android/mini/53.1.2254.55490/), minimum SDK 17, 16,548,726 bytes. Observed SHA-256 `1add1bf5bddbbd6a80e44bbdd00ce428e75f990b9eb7ec617bf125907aa0bbbe` came from the official HTTPS download and matched full device readback; it was not a separately published digest. Native UI remained running. Duck.ai’s URL was verified in Automatic mode, but no chat appeared in that initial observation. Extreme mode was then selected, and the correct Duck.ai URL was launched by explicit VIEW intent. Work paused at the user’s request while they tried the browser. The final outcome of their manual test was not independently established. Extreme mode processes pages through Opera’s servers; see [Opera’s explanation](https://help.opera.com/en/opera-mini-and-javascript/).
+
+Some intermediate coordinate-based attempts after a layout change opened a news reader instead of the intended URL. Those captures are not evidence about Duck.ai or an example.com control. Later explicit URL intents corrected the test target.
+
+At the user’s subsequent request, **Firefox (`org.mozilla.firefox`), Opera Mini (`com.opera.mini.native`) and Bromite (`org.bromite.bromite`) were uninstalled**, each with Android’s explicit Success result. Staged browser APKs/diagnostic files were removed, and USB stay-awake was restored to its original value of zero. No root/Xposed, replacement system WebView, user CA certificate, or TLS bypass was installed.
+
+The user then chose a configurable API-key chat in KOReader. See [NOOK-CHAT.md](NOOK-CHAT.md); it is a separate working approach and makes no claim to use Duck.ai.
