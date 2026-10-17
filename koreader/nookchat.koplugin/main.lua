@@ -15,7 +15,10 @@ local Chat = WidgetContainer:extend{ name = "nookchat", is_doc_only = false }
 local function message(text) UIManager:show(InfoMessage:new{ text = text }) end
 
 function Chat:init()
-    self.config = Store.read() or { base_url = "https://tokenharbor.ai/v1", model = "deepseek-v4-flash", key = "" }
+    local saved = Store.read()
+    if not saved or Client.base_url(saved.base_url) ~= saved.base_url or not Client.valid_model(saved.model)
+        or type(saved.key) ~= "string" or saved.key ~= "" and not Client.valid_key(saved.key) then saved = nil end
+    self.config = saved or { base_url = "https://tokenharbor.ai/v1", model = "deepseek-v4-flash", key = "" }
     self.history = {}
     self.client = Client.new(root .. "cacert.pem")
     self.ui.menu:registerToMainMenu(self)
@@ -32,14 +35,14 @@ function Chat:init()
     end
 end
 
-function Chat:input(title, initial, callback, secret, description)
+function Chat:input(title, initial, callback, secret, description, accept_text)
     local dialog
     dialog = InputDialog:new{
         title = title, input = initial or "", description = description,
         text_type = secret and "password" or nil, allow_newline = not secret,
         buttons = {{
             { text = "Cancelar", callback = function() UIManager:close(dialog) end },
-            { text = secret and "Guardar" or "Aceptar", is_enter_default = true, callback = function()
+            { text = accept_text or (secret and "Guardar" or "Aceptar"), is_enter_default = true, callback = function()
                 local value = dialog:getInputText()
                 UIManager:close(dialog)
                 callback(value)
@@ -59,15 +62,17 @@ end
 
 function Chat:compose(context)
     if not Client.valid_key(self.config.key) then message("Introduce la clave en Asistente IA → Configuración → Clave API."); return end
+    local initial = self.draft
+    if context and context ~= self.draft_context then initial = "Explica este fragmento en español." end
     self:input(context and "Pregunta sobre la selección" or "Pregunta a la IA",
-        context and "Explica este fragmento en español." or self.draft,
+        initial,
         function(question)
             if question:match("^%s*$") then return end
             self.draft, self.draft_context = question, context
             self:send(question, context)
         end, false,
         "Se enviará al servidor configurado. Requiere Wi-Fi; puede consumir saldo API."
-            .. (context and " Incluye solo el fragmento seleccionado." or ""))
+            .. (context and " Incluye solo el fragmento seleccionado." or ""), "Enviar")
 end
 
 function Chat:send(question, context)

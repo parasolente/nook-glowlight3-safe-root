@@ -2,7 +2,7 @@
 
 ## Result on the tested device
 
-The BNRV520 runs Android 4.4.2, firmware `53.0.112_user`, on ARMv7/NEON. Simple Ink Launcher is selected with Always. KOReader, offline English–Spanish and Spanish dictionaries, page-button mappings, full refresh every page, and the independent archive integration are installed. The original NOOK app remains available. Firefox installed but crashes; it is not the working book-access method.
+The BNRV520 runs Android 4.4.2, firmware `53.0.112_user`, on ARMv7/NEON. Simple Ink Launcher is selected with Always. KOReader, offline English–Spanish and Spanish dictionaries, page-button mappings, full refresh every page, and the independent archive integration are installed. The original NOOK app remains available. The API-based AI assistant is also installed. Firefox, Opera Mini and Bromite were removed at the user’s request; see the later entries.
 
 Authenticated catalog search, a member EPUB download with native MD5 verification, opening that EPUB, and the bibliographic viewer were exercised directly on the NOOK. Normal use needs Wi-Fi and the configured account, not the host computer. See [ANNA-INTEGRATION.md](ANNA-INTEGRATION.md).
 
@@ -22,7 +22,7 @@ Official APK digests and sources are recorded in `sources.json`. Package compati
 
 `/sdcard` is Android emulated storage. The separate USB-visible filesystem is `/storage/spsd`, backed by `/data/sparse_image`. Books use `/storage/spsd/NOOK/Books/`; archive downloads use its `Downloads/` child. Dictionaries are under `/sdcard/koreader/data/dict/`.
 
-Both StarDict archives were validated before transfer, including index/data boundaries and synonym references. KOReader's included dictionary engine returned English–Spanish entries for `book` and Spanish definitions for `libro` with Wi-Fi disabled. Touch-based lookup remains a separate user-interface check; the engine and installed data are verified.
+Both StarDict archives were validated before transfer, including index/data boundaries and synonym references. KOReader's included dictionary engine returned English–Spanish entries for `book` and Spanish definitions for `libro` with Wi-Fi disabled. During the later AI integration checks, a long-press on “Palabra” also visibly displayed the Spanish dictionary entry. The engine and that touch lookup are verified.
 
 The four-button KOReader mapping and day/night full-refresh interval of one were installed after preserving original settings. The Nook/NTX driver and full-screen mode-34 requests were observed. The user confirmed the buttons work and ghosting improved substantially. This does not establish refresh behavior in every other app.
 
@@ -42,10 +42,12 @@ At the user's request, Total Commander 3.62d was downloaded from the developer's
 
 ## Additional apps and standalone Duck.ai research
 
-The user requires Duck.ai without account/API key, configurable provider URLs, or a companion computer. Anonymous host HTTPS bootstrap succeeded, but a complete chat has not been shown. A stock-browser device test found an untrusted certificate authority for the current Duck.ai certificate; it was not bypassed. A new local offline feature-check page confirmed Chromium 30 lacks required modern JavaScript features. No Duck.ai client or additional candidate app was installed. Version-specific notes/keyboard/sudoku APK manifests were inspected; see [APP-CANDIDATES.md](APP-CANDIDATES.md) and [DUCKAI-RESEARCH.md](DUCKAI-RESEARCH.md).
+During this research stage, the user required Duck.ai without account/API key, configurable provider URLs, or a companion computer. The later API-based request supersedes that requirement for the installed chat client. Anonymous host HTTPS bootstrap succeeded, but a complete chat has not been shown. A stock-browser device test found an untrusted certificate authority for the current Duck.ai certificate; it was not bypassed. A new local offline feature-check page confirmed Chromium 30 lacks required modern JavaScript features. No Duck.ai client or additional candidate app was installed. Version-specific notes/keyboard/sudoku APK manifests were inspected; see [APP-CANDIDATES.md](APP-CANDIDATES.md) and [DUCKAI-RESEARCH.md](DUCKAI-RESEARCH.md).
 
 ## Browser alternatives and API chat
 
 Bromite 81 and Opera Mini 53 were tested after correcting the overly narrow initial browser assessment. Bromite crashed in EGL compositor initialization. Opera Mini’s UI ran; the user took over manual testing before a Duck.ai conversation was demonstrated. At the user’s request, Firefox, Opera Mini and Bromite were then uninstalled with three explicit Success results, and browser staging files were removed. See BROWSER-ALTERNATIVES.md.
 
 The user supplied a configurable HTTPS base URL, model and API key and authorized a standalone KOReader API client. The independent nookchat plugin was implemented and installed. Both host and actual on-device native HTTPS calls returned text from the requested model. The Nook visibly displayed the Spanish reply; app-private credential storage was reread and mode 0600 confirmed. No key is in this repository, shared settings or public diagnostics. The temporary loopback-only USB provisioning bridge was removed. See NOOK-CHAT.md.
+
+The AI selection action was then exercised through the normal UI after an app restart: a word from the project’s own EPUB fixture opened an editable question, and submission produced a real Spanish explanation. Saved credentials survived the restart. A touch-based Spanish dictionary lookup was also visibly confirmed. The final UI labels sending explicitly, validates stored configuration, and preserves pending question drafts.

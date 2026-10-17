@@ -4,7 +4,7 @@
 
 The requested client must run on the BNRV520 alone over Wi-Fi, without a companion computer, user API key, account login, or user-configured provider/base URL. Duck.ai's anonymous website is the intended service. Its lack of an account requirement is real; authentication by a user-supplied key is not the problem.
 
-**No Duck.ai conversation has been completed on the NOOK. No working chat client has been installed.** The code in `diagnostics/` is a capability check, not a chat implementation. An HTTP 200 bootstrap response must not be described as a successful chat.
+**No Duck.ai conversation has been completed on the NOOK. No working Duck.ai chat client was installed. The user subsequently chose an API-based KOReader chat client, which has completed a native device response; see [NOOK-CHAT.md](NOOK-CHAT.md).** The code in `diagnostics/` is a capability check, not a chat implementation. An HTTP 200 bootstrap response must not be described as a successful chat.
 
 ## Direct observations
 
@@ -13,7 +13,7 @@ The requested client must run on the BNRV520 alone over Wi-Fi, without a compani
 3. Opening a fresh Duck.ai tab on the NOOK's stock browser produced a certificate-trust warning. Viewing its certificate showed `*.duck.ai`, issued by Let's Encrypt YR1 and valid during the test date. The browser reported an untrusted authority. The warning was not bypassed, and system certificates were not changed.
 4. The independently written, network-free `diagnostics/web-engine.html` was opened in that stock browser. JavaScript and XMLHttpRequest worked. Arrow syntax, async/await, Promise, and TextEncoder were unavailable. Web Crypto was absent in this local-file context (that last observation alone does not establish its behavior on HTTPS). The user agent reported Chromium 30 on Android 4.4.2.
 
-Firefox's earlier EGL crash is documented separately. A generic Android WebView wrapper would inherit an old engine unless it supplied a genuinely different compatibility layer; lowering an APK's minimum SDK would not supply the missing web capabilities.
+Firefox’s earlier EGL crash and subsequent tests of Bromite and Opera Mini are documented in [BROWSER-ALTERNATIVES.md](BROWSER-ALTERNATIVES.md). All three were later removed at the user’s request. A generic Android WebView wrapper would inherit an old engine unless it supplied a genuinely different compatibility layer; lowering an APK's minimum SDK would not supply the missing web capabilities.
 
 ## What an experimental standalone client would require
 

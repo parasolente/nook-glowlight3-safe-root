@@ -25,12 +25,14 @@ Conversations remain in the plugin instance’s memory, not local history files.
 - Host HTTPS call: HTTP 200, the requested model, and a short text answer.
 - Actual BNRV520/Android 4.4.2 call using KOReader’s LuaSocket/LuaSec runtime: a 262-byte Spanish answer was received and visibly displayed in the native KOReader text viewer. This was a real model response, not a fixture.
 - The app-private file was reread inside the app and its permissions were verified as `rw-------`. Initial provisioning used a one-use loopback socket through an ADB USB forward; the key never needed a shared-storage staging file. The temporary bridge and forwarding rule were removed afterward.
+- After closing and reopening KOReader, **Preguntar a IA** appeared in the normal highlight menu. An editable question about a selected word from the repository’s own EPUB fixture was submitted through the normal UI, and a real Spanish explanation was visibly displayed. This also verified the saved key across app restarts.
+- The Spanish offline dictionary also displayed a real definition via touch during that test.
 - Lua syntax checks and `tests/test_nookchat.lua` cover endpoint/header validation, context bounds, malformed replies, sanitized errors, and the actual HTTP request boundary (bearer header, no redirect, no retry).
 
 Developer diagnostic `diagnostics/nookchat_device_test.lua` is intentionally outside the plugin. It is only invoked from a temporary local test copy with a fresh random nonce, binds to loopback, accepts a single connection, provisions app-private data and makes one small live test call. It is not an installed background service. Never commit credentials or generated provisioning nonces.
 
 ## Installation
 
-Copy the complete `koreader/nookchat.koplugin/` directory into `/sdcard/koreader/plugins/` while KOReader is closed, then restart KOReader. Enter your own key through the masked configuration dialog. No changes to the firmware, system WebView, bootloader or NOOK app are required.
+Copy the complete `koreader/nookchat.koplugin/` directory into `/sdcard/koreader/plugins/` while KOReader is closed, then restart KOReader. Enter your own key through the masked configuration dialog. The input button for a question is **Enviar**. A failed/cancelled submitted question can be reopened from **Reabrir pregunta pendiente** without automatic resending. No changes to the firmware, system WebView, bootloader or NOOK app are required.
 
 Primary protocol references: [Token Harbor Chat APIs](https://tokenharbor.ai/docs/api/curl) and [the configured model’s exact ID](https://tokenharbor.ai/models/deepseek-v4-flash). API availability, model behavior and pricing may change. The CA bundle has separate attribution in the plugin’s THIRD-PARTY-NOTICES.md.
