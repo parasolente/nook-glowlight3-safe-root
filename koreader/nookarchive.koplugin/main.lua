@@ -5,6 +5,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Menu = require("ui/widget/menu")
+local TextViewer = require("ui/widget/textviewer")
 local NetworkMgr = require("ui/network/manager")
 local util = require("util")
 local json = require("json")
@@ -141,9 +142,53 @@ function Archive:search(query, page)
 end
 
 function Archive:choose(book)
-    if self.options.extension == "all" then message("Selecciona EPUB o PDF en los ajustes antes de descargar."); return end
+    self:run("Consultando la edición…", function()
+        return self.client:details(self.options.origin, book.md5, self.key)
+    end, function(details)
+        book.title = details.title or book.title
+        book.extension = details.extension
+        local lines = { book.title }
+        for _, field in ipairs({
+            {"Autor", details.author}, {"Idioma", details.language}, {"Editorial", details.publisher},
+            {"Año", details.year}, {"Edición", details.edition}, {"ISBN-13", details.isbn13},
+            {"ISBN-10", details.isbn10}, {"Formato", details.extension ~= "" and details.extension:upper() or nil},
+            {"Tamaño", details.bytes and string.format("%.2f MiB", details.bytes / 1048576) or nil},
+            {"Páginas", details.pages},
+        }) do
+            lines[#lines + 1] = field[1] .. ": " .. (field[2] or "No disponible")
+        end
+        lines[#lines + 1] = "\nSinopsis:\n" .. (details.description or "No disponible en el catálogo.")
+        lines[#lines + 1] = "\nDatos proporcionados por el catálogo; comprueba la edición."
+        local dialog
+        dialog = TextViewer:new{
+            title = "Ficha del libro", text = table.concat(lines, "\n"),
+            buttons_table = {{
+                { text = "Cerrar", callback = function() UIManager:close(dialog) end },
+                { text = "Descargar", callback = function()
+                    UIManager:close(dialog)
+                    self:confirm_download(book)
+                end },
+            }},
+        }
+        UIManager:show(dialog)
+    end)
+end
+
+function Archive:confirm_download(book)
+    local extension = book.extension
+    if not ({epub=true, pdf=true, mobi=true})[extension] then
+        message("Formato no compatible con esta descarga: " .. tostring(extension or "desconocido")); return
+    end
     if not self.key then
-        message("Las descargas rápidas requieren un token con membresía activa.\nIntrodúcelo en Anna’s Archive → Token de miembro.\nLa búsqueda no requiere token.")
+        message("Las descargas rápidas requieren un token con membresía activa.\nIntrodúcelo en Anna’s Archive → Token de miembro.")
+        return
+    end
+    local target = self.options.directory .. "/" .. book.md5 .. "." .. extension
+    if require("libs/libkoreader-lfs").attributes(target) then
+        UIManager:show(ConfirmBox:new{
+            text = "Este archivo ya está descargado.", ok_text = "Abrir", cancel_text = "Cerrar",
+            ok_callback = function() require("apps/reader/readerui"):showReader(target) end,
+        })
         return
     end
     UIManager:show(ConfirmBox:new{
@@ -152,9 +197,12 @@ function Archive:choose(book)
         ok_callback = function()
             self:run("Descargando y verificando el archivo…", function()
                 if not util.directoryExists(self.options.directory) then util.makePath(self.options.directory) end
+                if require("libs/libkoreader-lfs").attributes(target .. ".partial") then
+                    return nil, "Ya existe una descarga parcial de este archivo."
+                end
                 local address, err = self.client:fast_url(self.options.origin, book.md5, self.key)
                 if not address then return nil, err end
-                return self.client:download(address, self.options.directory, book.md5, self.options.extension)
+                return self.client:download(address, self.options.directory, book.md5, extension)
             end, function(path)
                 UIManager:show(ConfirmBox:new{
                     text = "Descarga completa. MD5 verificado.\n" .. path,

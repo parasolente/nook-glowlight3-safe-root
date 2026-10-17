@@ -1,10 +1,12 @@
-# NOOK GlowLight 3: backup-first root notes
+# NOOK GlowLight 3: backup-first KOReader setup
 
 Tools and documented observations for the Barnes & Noble NOOK GlowLight 3 (BNRV520), focused on preserving the original system before permanent root installation.
 
 ## Current status
 
-**Setup is in progress:** Simple Ink Launcher is selected with Always, USB/ADB access has returned, and stock shell permissions are confirmed. Temporary backup/root files were removed and the original stay-awake setting restored. All four page buttons now work in KOReader; the user confirmed that full refresh on every page substantially improves ghosting. Firefox crashes on this device. The new archive plugin loads, validates HTTPS, and successfully downloads/verifies an original test EPUB, but direct Anna's Archive search is blocked by site verification. Member downloads remain untested. The requested standalone search/download workflow is not complete; see `ANNA-INTEGRATION.md`.
+**Working on the tested device:** Simple Ink Launcher is selected with Always; KOReader has offline dictionaries, all four page buttons, and full refresh every page. The user confirmed the button/ghosting improvements. The independent Anna's Archive plugin now searches through the user's authenticated session, downloads with the member API, verifies MD5, and opens the saved EPUB directly in KOReader. Selected results show a scrollable bibliographic record before download. See [ANNA-INTEGRATION.md](ANNA-INTEGRATION.md) for usage, security boundaries, and test limits. Firefox crashes on this device and is not the working access method.
+
+Stock shell permissions are confirmed after reboot. No permanent root, SuperSU, or system/boot/recovery flash was installed. The original NOOK application remains available.
 
 - USB debugging and authorized ADB confirmed on a BNRV520 running Android 4.4.2 / `53.0.112_user`.
 - The temporary `adbhack` stage from the upstream rooting project provided a root ADB shell while `/system` remained read-only.

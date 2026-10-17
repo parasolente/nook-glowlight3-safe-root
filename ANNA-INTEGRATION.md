@@ -1,48 +1,63 @@
-# Anna's Archive inside KOReader — work in progress
+# Anna's Archive inside KOReader
 
-The user chose an integrated KOReader search/download menu after Firefox failed. The requested initial origin remains `https://annas-archive.gl`. The plugin menu loads on the device and certificate-validated HTTPS to the public member API works (HTTP 400 is expected without a file MD5/key). The unauthenticated test EPUB was downloaded on the NOOK, passed its native MD5 check, and a separate host read matched the original byte for byte. Direct search is currently blocked: a same-origin 302 is followed by HTTP 403, and an independent host request returns DDoS-Guard. Do not present direct search or member downloads as verified. Obtaining a known file MD5 on another device does not fulfill the user's intended standalone workflow.
+The independent `nookarchive.koplugin` provides standalone search, bibliographic details, member downloads, and opening the saved book on the tested BNRV520. It uses the selected origin, initially `https://annas-archive.gl`, directly; no host computer, proxy, or remote helper is needed during normal use. No permanent root is required.
 
-## Why Firefox was not usable
+## Usage
 
-The official Firefox 68.11.0 APK installed, but launching it crashed. The local log shows `Failed to create EGLConfig!` immediately before the crash handler. A separate, unauthenticated external profile disabling accelerated/off-main-thread composition also crashed. That diagnostic profile was deleted. Its preferences are retained in `config/firefox-software-test-prefs.js` as a failed experiment, not a fix.
+1. Open KOReader's top **Search** menu (magnifying glass); on this installation the archive entry is on its second menu page.
+2. Open **Anna’s Archive (NOOK)**. **Formato** cycles EPUB → PDF → ALL. Reopen the menu after changing it.
+3. Choose **Buscar libros**, enter a title, author, or ISBN, and select a result.
+4. Read the scrollable **Ficha del libro**: title, author, language codes, publisher, year, edition, ISBN-13/10, format, size, page count, and synopsis. Missing fields explicitly say they are unavailable; catalog metadata is not independently certified.
+5. Choose **Descargar**, then confirm the membership download. An active membership and remaining allowance are required. The final file is opened only when requested.
 
-The original Android browser opened but returned `ERR_SSL_PROTOCOL_ERROR` for the requested site. Wi-Fi was connected and the device date was correct. Another official domain was tried only as a network diagnostic; the user reiterated that `.gl` should be used. No account key was entered during browser testing. No additional browser was installed.
+Default folder: `/storage/spsd/NOOK/Books/Downloads`. The directory and HTTPS domain are editable in the menu. Changing the domain clears the key and session; sign in separately on the new origin. **Descargar con MD5 conocido** also retrieves the record before offering a download. Actual record format determines the filename, including in ALL searches; downloads currently accept EPUB, PDF, and MOBI.
 
-## Independent plugin
+Browsing records does not request a fast-download URL. An existing destination is offered for opening before requesting another member download. Files use their MD5 identifier as the filename.
 
-`koreader/nookarchive.koplugin` is a new implementation, not a copy of either reviewed third-party Anna plugin. The third-party variants were reviewed but not installed. They did not provide the requested member-token workflow directly.
+## Credentials and HTTPS
 
-Menu location: KOReader's top **Search** menu → **Anna’s Archive (NOOK)**. The entry is available while reading and in the file browser.
+Enter the authorized member token in the device's masked **Token de miembro** dialog. On Android it is stored in KOReader's app-private files directory with mode 0600 and bound to the selected origin. It is not stored in shared KOReader settings. If private storage fails, it remains in memory only. Enter an empty value to delete it.
 
-- Search by title, author or ISBN; default format is EPUB. Format can cycle to PDF or all results.
-- Edit the HTTPS domain in the menu. Changing it clears the stored account key.
-- Edit the download folder; default `/storage/spsd/NOOK/Books/Downloads`.
-- Enter the member token on the device in the masked dialog. On Android it is stored in KOReader's app-private files directory with mode 0600, bound to the selected origin. It is never put into shared settings, a public repository, or a displayed URL. A failed private save keeps it in memory only.
-- Fast downloads use the [documented member API](https://annas-archive.gl/dyn/api/fast_download.json). An active membership/download allowance is required. The plugin does not automate a browser verification challenge or claim to provide free anonymous downloads.
-- A known `/md5/…` identifier can be entered if search is unavailable.
-- `Probar descarga sin token` fetches this project's original 1,496-byte EPUB fixture from GitHub using the same download engine and checks its expected MD5. It does not use Anna's API, a member token, or a membership quota. The fixture is reproducibly generated by `make_test_epub.py` and contains only original test text. This checks transport/storage/integrity, not authenticated Anna downloads.
-- Requests validate the certificate chain and DNS subject-alternative name before sending HTTP. Account requests do not follow redirects. Download redirects must remain HTTPS and receive no account token/header.
-- Files are streamed to `.partial` and renamed only after their MD5 matches the selected identifier. Existing files are not overwritten.
+The plugin performs the site's normal form POST to `/account/`, sending `key` in the HTTPS request body. Derived account cookies stay in memory for up to an hour and are used only on that origin for search and record requests. A rejected session gets at most one renewal attempt. Login does not follow redirects. Authenticated requests are refused when their expected origin differs from the request origin.
 
-The Lua 5.1 syntax check and local tests for origin validation, same-origin redirect handling, DNS hostname checks, HTML result extraction, and the TLS adapter passed. Plugin loading, anonymous HTTPS, and the original test EPUB download/storage/integrity path have been checked on the device. The member workflow is untested and no account key has been entered. Search depends on the site's HTML and is currently blocked by browser verification; that limitation must be reported honestly. Public search-index fallbacks were considered: DuckDuckGo returned a verification page, Google did not provide usable file links, Bing RSS did not provide relevant matching links, and Brave returned HTTP 429. No fallback or proxy was installed.
+Fast downloads use the [documented member API](https://annas-archive.gl/dyn/api/fast_download.json). The key is sent only to the selected API origin. The resulting HTTPS download hosts receive neither the account token nor search cookies. No credentials, signed URLs, account pages, or downloaded books belong in this repository.
 
-## Installation and rollback
+TLS validates the certificate chain using the bundled Mozilla CA file and checks the DNS subject-alternative name before sending HTTP. The system CA store is unchanged. Keep `cacert.pem` and `THIRD-PARTY-NOTICES.md` with the plugin.
 
-Stop KOReader, copy the plugin folder to `/sdcard/koreader/plugins/`, then reopen KOReader. Remove that folder while KOReader is stopped to disable it. Clear the token through the menu before removal if the private credential file should also be deleted. No system files or root access are required.
+Downloads stream into `.partial`, have bounded size/time, and are renamed only after the expected MD5 matches. Existing files are not overwritten. Failed downloads are discarded. The reader still determines whether a particular book is usable; this is not DRM removal.
 
-Keep `cacert.pem` and its third-party notice with the plugin. Tests run from this repository root:
+## Verified on the device
+
+- The menu loads and certificate-validated anonymous HTTPS reaches the member API; HTTP 400 is expected without required parameters.
+- The project's original 1,496-byte EPUB test downloaded without an account key or membership allowance. Native MD5 and an independent host byte comparison passed.
+- The authorized token was entered through the masked dialog, saved privately, and remained configured after restarting KOReader.
+- Authenticated search for Don Quixote returned multiple editions on the NOOK.
+- One selected member EPUB downloaded successfully: 1,687,265 bytes, native MD5 matched before rename, and KOReader opened its cover and parsed its pages.
+- The bibliographic viewer displayed a real EPUB edition's author, English language code, publisher, year, edition, ISBNs, format, size, and synopsis. Missing page count was shown as unavailable.
+- A search with the PDF filter returned different editions. Selecting a 1949 record displayed PDF, English, 49.77 MiB, and explicit missing publisher/ISBN/synopsis fields. No additional member download was requested.
+- The temporary USB stay-awake setting was restored to its original zero, and stock shell UID 2000 was checked again after validation.
+
+PDF uses the same streaming/checksum engine. A separate PDF member download has not been consumed merely to repeat the transport test. Availability depends on the selected record and membership. Search depends on site HTML; record details depend on the site's JSON schema. Future domain, login, or schema changes may require an update.
+
+Anonymous search was blocked by site verification during development. The working path uses a normal authenticated account session. Valid result pages also contain DDoS-Guard helper scripts; challenge detection checks response status, page title, and the exact verification redirect instead of rejecting every page containing that script name.
+
+## Local validation and provenance
 
 ```sh
 lua5.1 tests/test_nookarchive.lua
 luac5.1 -p koreader/nookarchive.koplugin/client.lua koreader/nookarchive.koplugin/main.lua
 ```
 
-## Authenticated search development
+Tests cover strict origin parsing, same-origin redirects, chain/SAN verification, cookie extraction with Expires commas, session reuse and bounded renewal, credential isolation, challenge detection, result deduplication, record normalization, missing metadata, and double-encoded record JSON.
 
-After the anonymous search blocker, a normal account-session approach was identified by reviewing the [bitesized client](https://github.com/bitesized/annas-archive-api/blob/main/lib/annas.js) and the [Emacs integration](https://github.com/benthamite/annas-archive). They describe a form POST to `/account/` with a `key` field, followed by account-cookie search requests. No third-party service or their code is deployed by this project.
+The implementation is independently written under MIT. The [bitesized client](https://github.com/bitesized/annas-archive-api/blob/main/lib/annas.js) was reviewed for the normal account exchange. The [Rust client's author-published source](https://docs.rs/crate/annas-archive-api/0.2.0/source/src/client.rs) documents the record endpoint `/db/aarecord_elasticsearch/md5:ID.json` and unified metadata fields; those protocol facts were used, with no third-party implementation copied. Reviewed KOReader archive plugins were not installed.
 
-The NOOK plugin now implements that exchange directly with the selected HTTPS origin. Account cookies are kept only in memory for up to an hour; changing the token clears them. Search sends only the derived cookie, and stale sessions receive at most one renewal attempt. Both POST credentials and cookies are refused if their expected origin differs from the request origin. Download hosts receive neither the login token nor the search cookie.
+`enter_token_on_device.py` reads a key without terminal echo and types individual characters into a verified ready password dialog. It neither submits the dialog nor saves a host credential file, and does not pass the complete key as a process argument.
 
-Offline tests cover cookie extraction with Expires commas, session reuse, one-time session renewal, credential-free login URLs, and refusal to send authenticated requests outside the selected origin. Native authenticated search and member downloads remain pending at this checkpoint. The user authorized an account key for testing; its value must never appear in this repository or diagnostics.
+## Installation and rollback
 
-`enter_token_on_device.py` reads a key without terminal echo and enters individual characters into an already-verified password dialog. It does not submit the dialog, save a host credential file, or pass the complete key as a process argument. It requires explicit device serial selection and a verified ready dialog.
+Stop KOReader, copy `koreader/nookarchive.koplugin` into `/sdcard/koreader/plugins/`, and reopen KOReader. To remove it, first clear the token through the menu if its private credential file should also be deleted; then stop KOReader and remove the plugin directory. No system files or root access are required.
+
+## Browser result
+
+Firefox 68.11.0 installed but crashed with `Failed to create EGLConfig!`. An isolated software-rendering profile also crashed and was removed. The stock Android browser returned `ERR_SSL_PROTOCOL_ERROR`. They are not validated alternatives to this plugin. `config/firefox-software-test-prefs.js` preserves the failed experiment, not a browser fix.

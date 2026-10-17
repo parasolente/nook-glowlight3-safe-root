@@ -1,33 +1,19 @@
-# Boot-screen investigation and remaining checks
+# Boot-screen investigation and recovery limits
 
-The setup is not complete and must not be represented as a validated end-to-end recipe.
+The loading-screen interruption cleared without a reset or image restoration. The current launcher, KOReader page buttons/refresh, authenticated search, member EPUB download/opening, and bibliographic viewer have been checked on the tested BNRV520. Recovery restoration itself remains untested.
 
-## Last verified state
+## Original backup
 
-- The original full-memory image and twelve selected regions were acquired and hash-verified before application installation.
-- `/system` remained read-only. No bootloader, boot, recovery, or system image was flashed. No SuperSU installation was run.
-- KOReader, Simple Ink Launcher, and Firefox were confirmed in the installed package list.
-- Both offline dictionaries answered real queries using KOReader's included engine.
-- The user confirmed KOReader displayed correctly on the physical panel. The Android screenshot appeared rotated with black strips; this was not a physical display problem.
-- The NOOK USB dialog was dismissed successfully with `adb shell input keyevent 4` while a connection was available.
+The full-memory image and twelve selected regions were acquired and hash-verified before installing applications. `/system` stayed read-only. No bootloader, boot, recovery, or system image was flashed, and no SuperSU installation ran. Backups and device identifiers remain local. A live image is not an atomic snapshot of writable filesystems, and a matching transfer hash does not establish restorability.
 
-## Open symptoms
+## Loading and USB symptoms
 
-The host kernel reported repeated USB protocol errors (`-71`) and disconnects. The reader later stopped enumerating on USB. A normal power-off and power-on was performed by the user. The user then reported the NOOK logo and a repeatedly moving Loading indicator for about five minutes. Brief presses of the home and power buttons did not reach the home interface.
+The host reported intermittent USB protocol errors (-71) and disconnects. Following a normal power-off/on, the user saw the NOOK Loading indicator for about five minutes. Brief home/power presses initially did not reach home. The cause was not established.
 
-The cause has not been established. Do not infer that the system or boot image was changed simply from the loading symptom, and do not infer that a correct image hash proves restoration will succeed.
+After unplugging USB, a short power press changed the screen and a second brought up Android's home chooser. The user chose Simple Ink Launcher with Always. No proposed forced reset was needed. The loading symptom cleared and authorized USB/ADB later returned; the precise USB fault remains unconfirmed. Persistence through a further reboot was not deliberately tested merely to repeat the interruption.
 
-## Current conservative step
+## Post-reconnection checks
 
-A manufacturer-documented soft reset was proposed, but the user did not need to complete it. After unplugging USB, a short power-button press changed the screen; a second press brought up the Android home chooser. The user then selected Simple Ink Launcher with Always, having used Just once earlier. No factory reset or image restoration was performed. The loading-screen symptom is cleared; the USB cause remains unconfirmed.
+ADB had stock shell UID 2000 and completed boot, no temporary `/sbin` overlay, and no `su` in standard system locations. Temporary root/backup files and staged APKs were removed. Stay-awake's original setting is zero; temporary USB testing must restore it. KOReader's four-button mapping and full refresh every page were applied after saving the previous settings, and the user confirmed improvement.
 
-The original device backups and diagnostic files remain local. Their private paths and device identifiers are intentionally not published.
-
-## Still required
-
-- Confirm the selected home preference persists at the next normal start; Always has been selected by the user.
-- The intended standalone Anna's Archive search/download flow remains incomplete: Firefox crashes, direct plugin search is blocked by site verification, and member downloads are untested. The plugin's anonymous HTTPS and original test EPUB download/integrity path are verified. No account token has been entered or stored by this project. See `ANNA-INTEGRATION.md`.
-
-## Reconnection and display follow-up
-
-USB and authorized ADB returned. Post-restart checks show stock shell permissions, completed boot, no temporary `/sbin` mount, and no `su` in the standard system locations. Temporary backup/root files and staged APKs were removed, and stay-awake was restored to `0`. KOReader's page mapping and full refresh every page were applied after preserving the original settings; the user confirmed the buttons work and refresh is much better. See `DISPLAY-AND-BUTTONS.md`.
+Firefox crashes and the stock browser's modern HTTPS failed. The independent KOReader integration is the verified standalone search/download route; see [ANNA-INTEGRATION.md](ANNA-INTEGRATION.md). This setup does not require permanent root or recovery flashing.

@@ -24,6 +24,23 @@ eq(#books, 1)
 eq(books[1].md5, id)
 eq(books[1].title, "Example")
 
+local metadata = Client.metadata({file_unified_data={
+    title_best=" <b>Example</b> ", author_best="Writer", extension_best="PDF", filesize_best=2048,
+    language_codes={"es", "en"}, publisher_best="Publisher", year_best=2020,
+    identifiers_unified={isbn13={"9780000000000"}, isbn10={"0000000000"}},
+    stripped_description_best="<script>private()</script>A <i>description</i>.",
+}})
+eq(metadata.title, "Example")
+eq(metadata.extension, "pdf")
+eq(metadata.language, "es, en")
+eq(metadata.isbn13, "9780000000000")
+eq(metadata.year, "2020")
+eq(metadata.bytes, 2048)
+eq(metadata.description, "A description .")
+eq(Client.metadata({}), nil)
+eq(Client.metadata({file_unified_data={}}).publisher, nil)
+eq(Client.metadata({file_unified_data={language_codes={false, "es"}}}).language, "es")
+
 package.loaded["socket.url"] = { absolute = function(base, destination)
     if destination:sub(1, 1) == "/" then return "https://annas-archive.gl" .. destination end
     return destination
@@ -48,6 +65,10 @@ eq(Client.session_cookie("other=x; Path=/, aa_account_id2=session-value; Expires
 eq(Client.session_cookie({"aa_account_id2=one; Path=/", "aa_other=two; Secure"}), "aa_account_id2=one; aa_other=two")
 eq(Client.session_cookie("unrelated=value; Path=/"), nil)
 eq(Client.session_cookie('aa_account_id2="unsafe"; Path=/'), nil)
+eq(Client.is_challenge({code=200, headers={}, body='<title>Search - Anna Archive</title><script>const guard="ddos-guard";</script>'}), false)
+eq(Client.is_challenge({code=200, headers={}, body='<title>DDoS-Guard</title>'}), true)
+eq(Client.is_challenge({code=302, headers={location="/search?check=1&q=test"}, body=""}), true)
+eq(Client.is_challenge({code=302, headers={location="/search?check=10"}, body=""}), false)
 eq(Client.new("test-ca.pem"):request("https://outside.example/", nil, {
     origin="https://annas-archive.gl", cookie="aa_account_id2=example-session",
 }), nil)
@@ -89,6 +110,31 @@ end
 eq(#expired:search("https://annas-archive.gl", "example", "epub", 1, "test-key"), 1)
 eq(renewals, 2)
 eq(attempts, 2)
+
+local detail_client, detail_calls, decode_calls = Client.new("test-ca.pem"), 0, 0
+package.loaded.json = {decode=function(raw)
+    decode_calls = decode_calls + 1
+    if raw == "outer" then return "inner" end
+    eq(raw, "inner")
+    return {file_unified_data={title_best="Edition", extension_best="pdf"}}
+end}
+function detail_client:login(origin, key, force)
+    eq(origin, "https://annas-archive.gl")
+    eq(key, "test-key")
+    eq(force, detail_calls == 1)
+    return "aa_account_id2=session"
+end
+function detail_client:public_request(origin, address, cookie)
+    detail_calls = detail_calls + 1
+    eq(address, origin .. "/db/aarecord_elasticsearch/md5:" .. id .. ".json")
+    eq(cookie, "aa_account_id2=session")
+    if detail_calls == 1 then return {code=403} end
+    return {code=200,body="outer"}
+end
+eq(detail_client:details("https://annas-archive.gl", id, "test-key").extension, "pdf")
+eq(detail_calls, 2)
+eq(decode_calls, 2)
+eq(detail_client:details("https://annas-archive.gl", "invalid", "test-key"), nil)
 
 -- Verify chain validation is requested and a bad DNS SAN fails before HTTP.
 local closed, verified = false, false

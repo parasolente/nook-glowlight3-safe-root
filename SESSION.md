@@ -1,77 +1,37 @@
 # Setup progress
 
-## Hardware and scope
+## Result on the tested device
 
-Observed device: BNRV520, ARMv7 with NEON, Android 4.4.2, firmware `53.0.112_user`.
-The chosen result is **KOReader, an E-Ink launcher, offline English–Spanish and Spanish dictionaries, and browser access without permanent root**.
+The BNRV520 runs Android 4.4.2, firmware `53.0.112_user`, on ARMv7/NEON. Simple Ink Launcher is selected with Always. KOReader, offline English–Spanish and Spanish dictionaries, page-button mappings, full refresh every page, and the independent archive integration are installed. The original NOOK app remains available. Firefox installed but crashes; it is not the working book-access method.
 
-No bootloader, recovery, boot partition, or `/system` modification is planned for this setup. The original NOOK application stays available.
+Authenticated catalog search, a member EPUB download with native MD5 verification, opening that EPUB, and the bibliographic viewer were exercised directly on the NOOK. Normal use needs Wi-Fi and the configured account, not the host computer. See [ANNA-INTEGRATION.md](ANNA-INTEGRATION.md).
 
-## Completed preparation
+## Backup and system scope
 
-1. Identified the device and obtained USB-debugging authorization.
-2. Archived USB-visible files and compared every file's size and SHA-256 against the archive.
-3. Reviewed upstream root scripts at the commit linked in the README.
-4. Pushed upstream files to `/data/local/tmp/.nookrooter` and ran **only** `doroot.sh adbhack` to obtain temporary root ADB for backup. SuperSU was not installed. `/system` remained read-only.
-5. Read the actual partition map and obtained independent SHA-256 hashes for the unchanged partitions and disk gaps.
-6. Verified binary transport through the old ADB daemon using NUL, LF, CR, and a non-ASCII test byte. `exec-out` was unsupported. Plain shell output changed LF to CRLF; `busybox stty raw -echo` preserved every probe byte.
-7. Completed gzip-compressed full-memory acquisition: 7,818,182,656 raw bytes and 473,766,758 compressed bytes. Gzip CRC, raw size, all twelve independently hashed regions, and the separately recomputed whole-image SHA-256 matched.
-8. Downloaded APKs from official project sources and inspected them with Google's `aapt2` 8.7.3. KOReader requires API 18 and ARMv7; Simple Ink Launcher requires API 17. The observed NOOK runs API 19.
-9. Prepared and checked both StarDict dictionaries, including every index/data boundary and synonym reference.
+USB debugging was authorized before work. USB-visible files were archived and compared file by file. The upstream scripts were reviewed at the README's pinned commit. Only `doroot.sh adbhack` was used for a temporary root ADB shell to read storage; SuperSU was not installed and `/system` remained read-only.
 
-The acquisition prototype was generalized as `nook_backup.py`; the saved-diagnostic layout conversion is reproduced by `make_layout.py`. No device identifiers, credentials, or memory contents are published.
+The actual device partition map and independent SHA-256 hashes were collected. An old ADB shell changed LF into CRLF and did not support exec-out; a binary transport probe and BusyBox raw terminal mode established byte-preserving capture. The resulting full image contains 7,818,182,656 raw bytes and 473,766,758 gzip bytes. Gzip CRC, raw size, twelve independently hashed regions, and a separate whole-image SHA-256 read all matched.
 
-## Storage findings
+After the user's reboot, ADB returned to UID 2000, boot completion was confirmed, and the temporary `/sbin` overlay and standard system `su` paths were absent. Temporary root/backup files and staged APKs were removed. No bootloader, boot, recovery, or system image was flashed. The original USB stay-awake value is zero and must be restored after any temporary test session.
 
-On this device, `/sdcard` points to Android's emulated storage. The USB-visible NOOK drive is `/storage/spsd`, a separate FAT filesystem backed by `/data/sparse_image`. Do not assume those two locations contain the same files.
+The acquisition is live, not an atomic offline snapshot of writable `/data` and `/cache`; restoration has not been tested. Read-only `e2fsck -fn` reported unset padding bits at the end of an inode bitmap in the original system image. Its hash matches the unchanged device; no repair was attempted.
 
-Planned paths:
+## Apps, storage, dictionaries, and display
 
-- Books: `/storage/spsd/NOOK/Books/`
-- Browser downloads: `/storage/spsd/NOOK/Books/Downloads/`
-- KOReader dictionaries: `/sdcard/koreader/data/dict/`
+Official APK digests and sources are recorded in `sources.json`. Package compatibility was inspected with Google's aapt2; KOReader requires API 18, the launcher API 17, and this device provides API 19. Installation checks now wait for transfer completion, compare hashes, require package-manager Success, and verify the package list.
 
-## Browser constraints
+`/sdcard` is Android emulated storage. The separate USB-visible filesystem is `/storage/spsd`, backed by `/data/sparse_image`. Books use `/storage/spsd/NOOK/Books/`; archive downloads use its `Downloads/` child. Dictionaries are under `/sdcard/koreader/data/dict/`.
 
-The firmware includes `com.android.browser`. Firefox 68.11.0 from Mozilla's own archive is also compatible at the APK level, but Mozilla explicitly ended its security updates in 2020. Downloading it for a compatibility test does not establish that it can safely support a modern authenticated site.
+Both StarDict archives were validated before transfer, including index/data boundaries and synonym references. KOReader's included dictionary engine returned English–Spanish entries for `book` and Spanish definitions for `libro` with Wi-Fi disabled. Touch-based lookup remains a separate user-interface check; the engine and installed data are verified.
 
-The requested initial bookmark is `https://annas-archive.gl/`. It must remain editable. Account access uses a token entered by the user, not a credential embedded in code. Do not carry the token automatically to newly discovered domains. Each new destination needs separate verification and sign-in.
+The four-button KOReader mapping and day/night full-refresh interval of one were installed after preserving original settings. The Nook/NTX driver and full-screen mode-34 requests were observed. The user confirmed the buttons work and ghosting improved substantially. This does not establish refresh behavior in every other app.
 
-Current release sources and SHA-256 hashes are recorded in `sources.json`. Dictionary archives and APKs are not redistributed.
+## Resolved interruptions and limits
 
-## Pending validation
+USB intermittently reported protocol error -71 and stopped enumerating. The cause remains unconfirmed. After a normal restart, the user saw a persistent Loading screen. Unplugging USB and briefly pressing power twice brought up the home chooser; selecting the launcher with Always cleared the symptom. No forced reset, factory reset, or image restoration was performed. USB/ADB subsequently returned.
 
-- Finish visual launch checks for the installed applications.
-- Confirm touch-based dictionary lookup and shared-storage access in the reader UI.
-- Test actual browser access; do not claim authenticated downloads work before testing.
-- Confirm the Always home selection persists at the next normal start; the new launcher is already in use.
+The stock sleep screen can cover an otherwise focused app and sometimes requires a physical home-button press. Android screenshots were rotated and sometimes had black bands; the user confirmed the physical display was correct.
 
-Recovery restoration is untested. A live acquisition is not an atomic snapshot of writable `/data` or `/cache`.
+Firefox failed with an EGL configuration error, including with a separate software-rendering test profile; that profile was deleted. The stock browser returned an SSL protocol error. Anonymous archive search was blocked during development. The user authorized an account token and direct account-session integration, which now works. Credentials remain app-private; cookies remain in memory; downloaded books and diagnostics remain local.
 
-## Filesystem diagnostic limitation
-
-A read-only `e2fsck -fn` of the extracted original system image reported unset padding bits at the end of an inode bitmap. The extracted image matches the device's original SHA-256, so this is not evidence of transfer corruption. The image and the device filesystem were left unchanged. A hash-verified acquisition must not be described as a tested restore or a filesystem with no diagnostic warnings.
-
-## Application installation and offline checks
-
-All three selected packages are now installed: `org.koreader.launcher`, `org.ds.simple.ink.launcher`, and `org.mozilla.firefox`. Intermittent ADB transfers required explicit rechecking of the installed package list. One browser installation was attempted before its transfer finished and Android rejected it as invalid; after completion and a full hash match, the same official APK installed successfully. `install_verified_apk.py` and its tests now guard the transfer/verification/install sequence.
-
-Both prepared dictionaries were copied into KOReader's dictionary directory. The included `libsdcv.so` engine, with Wi-Fi disabled, returned two English–Spanish entries for `book` and Spanish definitions including the exact entry `libro`. The root-shell diagnostic emitted a local configuration-directory warning before its JSON results; the lookups themselves succeeded. Touch-based UI lookup remains to be checked.
-
-During setup, `svc power stayon usb` temporarily changed the previous stay-awake setting of `0`; it must be restored before completion. The stock NOOK sleep overlay required physical wake-up and can cover an otherwise focused Android app.
-
-## New display and button report
-
-After choosing the new launcher persistently, the user reported ghosting on the physical panel, possibly across applications and noticed since the loading screen, plus different page-button behavior. USB still does not enumerate, so no live configuration change or fix is verified. `DISPLAY-AND-BUTTONS.md` records the upstream findings and pending comparison; `config/event_map.lua` is a prepared, unapplied KOReader-only mapping. This report must not be dismissed as the earlier screenshot artifact.
-
-Follow-up: USB/ADB returned. Stock shell UID 2000, completed boot, no temporary `/sbin` overlay, and no `su` at the standard system locations were confirmed. The temporary root/backup directory and staged APKs were removed, and stay-awake was restored to zero. KOReader selected the Nook/NTX driver. Its four-button mapping was installed, and both full-refresh intervals were set to one after backing up existing settings. Logs show full-screen mode-34 requests; the user confirmed the four buttons work and refresh is much better. The browser remains unfinished.
-
-## Integrated archive work
-
-Firefox's real launch test failed with an EGL configuration error; an isolated software-rendering profile also crashed and was removed. The stock browser returned an SSL protocol error. The user explicitly chose integration inside KOReader and reiterated `.gl` as the requested domain. A new independent plugin was written, syntax-checked and locally tested, then copied to KOReader. Physical HTTPS/search/download checks remain in progress; see `ANNA-INTEGRATION.md`. No member token has been received or entered by this project.
-
-The plugin menu now loads on the NOOK. Anonymous HTTPS to `.gl`'s member API validated the certificate and returned HTTP 400, expected without required parameters. Search initially returned 302; same-origin redirects were implemented and tested. The destination returned 403; an independent host request identified DDoS-Guard. No search results are claimed. A reproducible original EPUB fixture and an unauthenticated download test were added to check the download engine without using any membership allowance. Device download verification remains pending at this checkpoint.
-
-The unauthenticated fixture download completed on the NOOK: 1,496 bytes, matching the expected MD5 before rename. Pulling the saved file back separately confirmed exact equality with the original EPUB. The download transport/storage path is verified, but direct archive search is still blocked and member downloads remain untested. No token has been entered. Public search-index probes did not yield a usable fallback, and none was installed. The user was explicitly informed that the requested standalone search/download workflow is not yet fulfilled.
-
-The user requested further development and authorized an account key. A direct account-session exchange was then implemented in the plugin using the site's normal login form; no proxy or remote service is introduced. Cookies remain in memory and are origin-bound; the original key remains in the existing app-private store after device entry. Offline security/session tests and Lua 5.1 syntax checks pass. Native authentication and search validation are in progress, not yet claimed as working.
+The reusable scripts, configuration, plugin, tests, and documentation are published in English. Device serials, ADB keys, account data, raw storage, and downloaded books are excluded.

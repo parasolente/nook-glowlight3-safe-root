@@ -19,11 +19,14 @@ def main():
     key = getpass.getpass("Account key (hidden): ")
     if not re.fullmatch(r"[A-Za-z0-9]{1,256}", key):
         raise SystemExit("This helper accepts alphanumeric keys only; use the device keyboard otherwise.")
-    commands = "".join("input text " + character + "\n" for character in key)
-    result = subprocess.run(
-        ["adb", "-s", args.serial, "shell"], input=commands.encode("ascii"),
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60,
-    )
+    commands = "".join("input text " + character + "\n" for character in key) + "exit\n"
+    try:
+        result = subprocess.run(
+            ["adb", "-s", args.serial, "shell", "sh"], input=commands.encode("ascii"),
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        raise SystemExit("Device input timed out; inspect the masked dialog locally before retrying.") from None
     if result.returncode:
         raise SystemExit("Device input failed; inspect the masked dialog locally.")
     print("Key entered into the dialog; not submitted or saved on this computer.")

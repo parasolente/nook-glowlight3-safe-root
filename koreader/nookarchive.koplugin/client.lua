@@ -146,7 +146,7 @@ function Client:public_request(origin, address, cookie)
             return response
         end
         if not response.headers.location then return nil, "The search redirect has no destination." end
-        if response.headers.location:match("[?&]check=1[&]?") then return response end
+        if (response.headers.location .. "&"):match("[?&]check=1&") then return response end
         address = require("socket.url").absolute(address, response.headers.location)
     end
     return nil, "Too many search redirects."
@@ -154,10 +154,12 @@ end
 
 function Client.is_challenge(response)
     local lower = (response.body or ""):lower()
+    local title = lower:match("<title[^>]*>(.-)</title>") or ""
+    -- Valid result pages contain DDoS-Guard helper scripts too. A raw keyword
+    -- search across the full document incorrectly rejects successful searches.
     return response.code == 403 or response.code == 401
-        or lower:find("/cdn%-cgi/challenge") ~= nil
-        or lower:find("cf%-chl%-") ~= nil or lower:find("ddos%-guard") ~= nil
-        or (response.headers.location or ""):match("[?&]check=1[&]?") ~= nil
+        or title:find("ddos%-guard") ~= nil or title:find("just a moment", 1, true) ~= nil
+        or ((response.headers.location or "") .. "&"):match("[?&]check=1&") ~= nil
 end
 
 function Client.session_cookie(raw)
@@ -221,6 +223,62 @@ function Client:search(origin, query, extension, page, key)
     end
     if response.code ~= 200 then return nil, "La búsqueda devolvió HTTP " .. tostring(response.code) .. "." end
     return Client.results(response.body, require("util").htmlEntitiesToUtf8)
+end
+
+-- Keep only bibliographic fields. Never display or persist the raw API object.
+function Client.metadata(data, decode)
+    if type(data) ~= "table" or type(data.file_unified_data) ~= "table" then return nil end
+    local record = data.file_unified_data
+    decode = decode or function(s) return s end
+    local function text(value)
+        if type(value) == "number" then value = tostring(value) end
+        if type(value) ~= "string" then return nil end
+        value = value:sub(1, 65536):gsub("<[sS][cC][rR][iI][pP][tT][^>]*>.-</[sS][cC][rR][iI][pP][tT]%s*>", "")
+            :gsub("<[^>]+>", " ")
+        value = decode(value):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+        return value ~= "" and value or nil
+    end
+    local function list(value)
+        if type(value) ~= "table" then return text(value) end
+        local parts = {}
+        for _, item in ipairs(value) do
+            local cleaned = text(item)
+            if cleaned then parts[#parts + 1] = cleaned end
+            if #parts == 30 then break end
+        end
+        return #parts > 0 and table.concat(parts, ", ") or nil
+    end
+    local identifiers = type(record.identifiers_unified) == "table" and record.identifiers_unified or {}
+    return {
+        title = text(record.title_best), author = text(record.author_best),
+        language = list(record.language_codes), publisher = text(record.publisher_best),
+        year = text(record.year_best), isbn13 = list(identifiers.isbn13), isbn10 = list(identifiers.isbn10),
+        description = text(record.stripped_description_best) or text(record.description_best),
+        extension = (text(record.extension_best) or ""):lower(),
+        bytes = tonumber(record.filesize_best), pages = text(record.pages_best),
+        edition = text(record.edition_varia_best),
+    }
+end
+
+function Client:details(origin, id, key)
+    if not Client.md5(id) then return nil, "MD5 no válido." end
+    for attempt = 1, 2 do
+        local cookie, err = self:login(origin, key, attempt == 2)
+        if not cookie then return nil, err end
+        local response
+        response, err = self:public_request(origin, origin .. "/db/aarecord_elasticsearch/md5:" .. id .. ".json", cookie)
+        if not response then return nil, err end
+        if response.code == 200 then
+            local ok, data = pcall(require("json").decode, response.body)
+            if ok and type(data) == "string" then ok, data = pcall(require("json").decode, data) end
+            local details = ok and Client.metadata(data, require("util").htmlEntitiesToUtf8)
+            if details then return details end
+            return nil, "El catálogo no devolvió una ficha bibliográfica reconocible."
+        end
+        if response.code ~= 401 and response.code ~= 403 then break end
+        self:clear_session()
+    end
+    return nil, "No se pudo consultar la ficha. Revisa la membresía o la disponibilidad del catálogo."
 end
 
 function Client:fast_url(origin, id, key)
