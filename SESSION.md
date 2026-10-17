@@ -15,7 +15,7 @@ No bootloader, recovery, boot partition, or `/system` modification is planned fo
 4. Pushed upstream files to `/data/local/tmp/.nookrooter` and ran **only** `doroot.sh adbhack` to obtain temporary root ADB for backup. SuperSU was not installed. `/system` remained read-only.
 5. Read the actual partition map and obtained independent SHA-256 hashes for the unchanged partitions and disk gaps.
 6. Verified binary transport through the old ADB daemon using NUL, LF, CR, and a non-ASCII test byte. `exec-out` was unsupported. Plain shell output changed LF to CRLF; `busybox stty raw -echo` preserved every probe byte.
-7. Started a gzip-compressed full-memory acquisition, with streaming CRC, size, and SHA-256 checks. Final verification remains pending while the transfer runs.
+7. Completed gzip-compressed full-memory acquisition: 7,818,182,656 raw bytes and 473,766,758 compressed bytes. Gzip CRC, raw size, all twelve independently hashed regions, and the separately recomputed whole-image SHA-256 matched.
 8. Downloaded APKs from official project sources and inspected them with Google's `aapt2` 8.7.3. KOReader requires API 18 and ARMv7; Simple Ink Launcher requires API 17. The observed NOOK runs API 19.
 9. Prepared and checked both StarDict dictionaries, including every index/data boundary and synonym reference.
 
@@ -41,7 +41,6 @@ Current release sources and SHA-256 hashes are recorded in `sources.json`. Dicti
 
 ## Pending validation
 
-- Complete full-memory acquisition and independent region verification.
 - Install and launch the selected applications.
 - Confirm offline dictionary lookup and shared-storage access.
 - Test actual browser access; do not claim authenticated downloads work before testing.
@@ -49,3 +48,7 @@ Current release sources and SHA-256 hashes are recorded in `sources.json`. Dicti
 - Confirm the new launcher appears as the home interface while the original NOOK application remains accessible.
 
 Recovery restoration is untested. A live acquisition is not an atomic snapshot of writable `/data` or `/cache`.
+
+## Filesystem diagnostic limitation
+
+A read-only `e2fsck -fn` of the extracted original system image reported unset padding bits at the end of an inode bitmap. The extracted image matches the device's original SHA-256, so this is not evidence of transfer corruption. The image and the device filesystem were left unchanged. A hash-verified acquisition must not be described as a tested restore or a filesystem with no diagnostic warnings.

@@ -7,7 +7,7 @@ Tools and documented observations for the Barnes & Noble NOOK GlowLight 3 (BNRV5
 - USB debugging and authorized ADB confirmed on a BNRV520 running Android 4.4.2 / `53.0.112_user`.
 - The temporary `adbhack` stage from the upstream rooting project provided a root ADB shell while `/system` remained read-only.
 - Shared-storage files were archived and checked file by file.
-- Internal-memory backup and independent partition verification are in progress.
+- Full-memory acquisition completed: 7,818,182,656 raw bytes; gzip CRC and exact length verified. Twelve independently hashed regions matched, and a separate whole-image read matched the acquisition SHA-256.
 - The selected setup is KOReader, Simple Ink Launcher, and offline dictionaries without permanent root. SuperSU will not be installed. Recovery restoration remains untested.
 
 These are observations from one device, not a compatibility guarantee. Rooting has a nonzero risk of data loss or a device that will not boot.
