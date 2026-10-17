@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOOK web engine check</title>
+<style>body{background:white;color:black;font:24px sans-serif;margin:16px}h1{font-size:30px}li{margin:12px 0}p{font-size:19px;word-wrap:break-word}</style>
+</head><body>
+<h1>Offline web engine check</h1>
+<p>No network requests, settings changes, or account access.</p>
+<ul id="results"><li>JavaScript has not run.</li></ul>
+<p id="agent"></p>
+<script>
+(function () {
+    var output = document.getElementById('results');
+    output.removeChild(output.firstChild);
+    function result(name, available) {
+        var item = document.createElement('li');
+        item.appendChild(document.createTextNode(name + ': ' + (available ? 'YES' : 'NO')));
+        output.appendChild(item);
+    }
+    function syntax(source) {
+        try { new Function(source); return true; } catch (error) { return false; }
+    }
+    result('JavaScript runs', true);
+    result('Arrow function syntax', syntax('return () => 1;'));
+    result('Async / await syntax', syntax('return async function () { await 1; };'));
+    result('Promise', typeof window.Promise === 'function');
+    result('TextEncoder', typeof window.TextEncoder === 'function');
+    result('Web Crypto (this context)', !!(window.crypto && window.crypto.subtle));
+    result('XMLHttpRequest', typeof window.XMLHttpRequest !== 'undefined');
+    document.getElementById('agent').appendChild(document.createTextNode(navigator.userAgent));
+}());
+</script></body></html>

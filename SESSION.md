@@ -39,3 +39,7 @@ The reusable scripts, configuration, plugin, tests, and documentation are publis
 ## Total Commander installation
 
 At the user's request, Total Commander 3.62d was downloaded from the developer's official release repository. Its SHA-256 matched the index, the repository certificate matched the fingerprint linked from the developer's website, and the APK signer matched the index. A full readback of the staged device APK matched before installation. Android reported Success and the expected package was present. The app launched, the stock USB overlay was closed, and the existing Books/Downloads directory was listed. Explicitly selecting the Light theme fixed the initially pale text. A Downloads bookmark was added with the home-folder option. See [TOTAL-COMMANDER.md](TOTAL-COMMANDER.md).
+
+## Additional apps and standalone Duck.ai research
+
+The user requires Duck.ai without account/API key, configurable provider URLs, or a companion computer. Anonymous host HTTPS bootstrap succeeded, but a complete chat has not been shown. A stock-browser device test found an untrusted certificate authority for the current Duck.ai certificate; it was not bypassed. A new local offline feature-check page confirmed Chromium 30 lacks required modern JavaScript features. No Duck.ai client or additional candidate app was installed. Version-specific notes/keyboard/sudoku APK manifests were inspected; see [APP-CANDIDATES.md](APP-CANDIDATES.md) and [DUCKAI-RESEARCH.md](DUCKAI-RESEARCH.md).

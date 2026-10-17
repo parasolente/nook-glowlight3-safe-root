@@ -1,0 +1,35 @@
+[
+  {
+    "name": "uNote",
+    "package": "app.varlorg.unote",
+    "version": "1.7.5",
+    "version_code": 29,
+    "min_android_sdk": 19,
+    "observed_sha256": "cc8cd0356e8f6114d5c359282c61ac5c18933ac3a4c08ddcbce502d390c2e371",
+    "bytes": 220946,
+    "source_url": "https://f-droid.org/archive/app.varlorg.unote_29.apk",
+    "validation": "APK manifest inspected only; not installed or tested on device."
+  },
+  {
+    "name": "Simple Keyboard",
+    "package": "rkr.simplekeyboard.inputmethod",
+    "version": "5.29",
+    "version_code": 115,
+    "min_android_sdk": 19,
+    "observed_sha256": "e3d2a48415e630f87800903da7cfb8ba628d49808ea2210ce4d17585236520d8",
+    "bytes": 840629,
+    "source_url": "https://f-droid.org/archive/rkr.simplekeyboard.inputmethod_115.apk",
+    "validation": "APK manifest inspected only; not installed or tested on device."
+  },
+  {
+    "name": "SudoQ",
+    "package": "de.sudoq",
+    "version": "2.1.1",
+    "version_code": 43,
+    "min_android_sdk": 19,
+    "observed_sha256": "834cb296a6414f996a2f2c775a9f758cff61728d2004cf73790f9c3f5467f8af",
+    "bytes": 7466201,
+    "source_url": "https://f-droid.org/archive/de.sudoq_43.apk",
+    "validation": "APK manifest inspected only; not installed or tested on device."
+  }
+]
