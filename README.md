@@ -4,7 +4,7 @@ Tools and documented observations for the Barnes & Noble NOOK GlowLight 3 (BNRV5
 
 ## Current status
 
-**Setup is in progress:** Simple Ink Launcher is selected with Always, USB/ADB access has returned, and stock shell permissions are confirmed. Temporary backup/root files were removed and the original stay-awake setting restored. All four page buttons now work in KOReader; the user confirmed that full refresh on every page substantially improves ghosting. Browser configuration and validation remain pending; see `RECOVERY-STATUS.md`.
+**Setup is in progress:** Simple Ink Launcher is selected with Always, USB/ADB access has returned, and stock shell permissions are confirmed. Temporary backup/root files were removed and the original stay-awake setting restored. All four page buttons now work in KOReader; the user confirmed that full refresh on every page substantially improves ghosting. Firefox crashes on this device. The new archive plugin loads, validates HTTPS, and successfully downloads/verifies an original test EPUB, but direct Anna's Archive search is blocked by site verification. Member downloads remain untested. The requested standalone search/download workflow is not complete; see `ANNA-INTEGRATION.md`.
 
 - USB debugging and authorized ADB confirmed on a BNRV520 running Android 4.4.2 / `53.0.112_user`.
 - The temporary `adbhack` stage from the upstream rooting project provided a root ADB shell while `/system` remained read-only.

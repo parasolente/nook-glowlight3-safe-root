@@ -26,7 +26,7 @@ The original device backups and diagnostic files remain local. Their private pat
 ## Still required
 
 - Confirm the selected home preference persists at the next normal start; Always has been selected by the user.
-- Complete browser configuration and actual access/download testing. No account token has been entered or stored by this project.
+- The intended standalone Anna's Archive search/download flow remains incomplete: Firefox crashes, direct plugin search is blocked by site verification, and member downloads are untested. The plugin's anonymous HTTPS and original test EPUB download/integrity path are verified. No account token has been entered or stored by this project. See `ANNA-INTEGRATION.md`.
 
 ## Reconnection and display follow-up
 

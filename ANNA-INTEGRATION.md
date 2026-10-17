@@ -1,6 +1,6 @@
 # Anna's Archive inside KOReader — work in progress
 
-The user chose an integrated KOReader search/download menu after Firefox failed. The requested initial origin remains `https://annas-archive.gl`. The plugin menu loads on the device and certificate-validated HTTPS to the public member API works (HTTP 400 is expected without a file MD5/key). Direct search is currently blocked: a same-origin 302 is followed by HTTP 403, and an independent host request returns DDoS-Guard. Do not present direct search or member downloads as verified.
+The user chose an integrated KOReader search/download menu after Firefox failed. The requested initial origin remains `https://annas-archive.gl`. The plugin menu loads on the device and certificate-validated HTTPS to the public member API works (HTTP 400 is expected without a file MD5/key). The unauthenticated test EPUB was downloaded on the NOOK, passed its native MD5 check, and a separate host read matched the original byte for byte. Direct search is currently blocked: a same-origin 302 is followed by HTTP 403, and an independent host request returns DDoS-Guard. Do not present direct search or member downloads as verified. Obtaining a known file MD5 on another device does not fulfill the user's intended standalone workflow.
 
 ## Why Firefox was not usable
 
@@ -24,7 +24,7 @@ Menu location: KOReader's top **Search** menu → **Anna’s Archive (NOOK)**. T
 - Requests validate the certificate chain and DNS subject-alternative name before sending HTTP. Account requests do not follow redirects. Download redirects must remain HTTPS and receive no account token/header.
 - Files are streamed to `.partial` and renamed only after their MD5 matches the selected identifier. Existing files are not overwritten.
 
-The Lua 5.1 syntax check and local tests for origin validation, same-origin redirect handling, DNS hostname checks, HTML result extraction, and the TLS adapter passed. Plugin loading and anonymous HTTPS have been checked on the device. The test EPUB download and member workflow are pending at this checkpoint. Search depends on the site's HTML and is currently blocked by browser verification; that limitation must be reported honestly. A DuckDuckGo Lite fallback was considered but its unauthenticated host request also returned a human-verification page; no fallback or proxy was installed.
+The Lua 5.1 syntax check and local tests for origin validation, same-origin redirect handling, DNS hostname checks, HTML result extraction, and the TLS adapter passed. Plugin loading, anonymous HTTPS, and the original test EPUB download/storage/integrity path have been checked on the device. The member workflow is untested and no account key has been entered. Search depends on the site's HTML and is currently blocked by browser verification; that limitation must be reported honestly. Public search-index fallbacks were considered: DuckDuckGo returned a verification page, Google did not provide usable file links, Bing RSS did not provide relevant matching links, and Brave returned HTTP 429. No fallback or proxy was installed.
 
 ## Installation and rollback
 
