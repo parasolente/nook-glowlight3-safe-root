@@ -8,7 +8,7 @@ Tools and documented observations for the Barnes & Noble NOOK GlowLight 3 (BNRV5
 - The temporary `adbhack` stage from the upstream rooting project provided a root ADB shell while `/system` remained read-only.
 - Shared-storage files were archived and checked file by file.
 - Internal-memory backup and independent partition verification are in progress.
-- Permanent root and recovery restoration are not yet validated by this project.
+- The selected setup is KOReader, Simple Ink Launcher, and offline dictionaries without permanent root. SuperSU will not be installed. Recovery restoration remains untested.
 
 These are observations from one device, not a compatibility guarantee. Rooting has a nonzero risk of data loss or a device that will not boot.
 
@@ -67,3 +67,18 @@ python3 verify_regions.py backups/mmcblk0-pre-root.img.gz backups/layout.json \
 ```
 
 The verifier checks the gzip CRC, full raw length, every selected region's size and SHA-256, and returns the whole-image SHA-256. Compare that whole-image digest with the acquisition manifest too. Failed extractions keep `.partial` extensions. Tests also cover region boundaries spanning read chunks, mismatching hashes, invalid ranges, path traversal, and existing output directories.
+
+## Dictionary preparation
+
+`prepare_dictionary.py` extracts a StarDict ZIP into a new local directory and validates the `.ifo`, `.idx`, dictionary data, and synonym references before transfer. It rejects ZIP path traversal and symbolic links, validates gzip CRC for `.dict.dz`, and produces per-file SHA-256 hashes. It does not transfer files to the NOOK.
+
+```sh
+python3 prepare_dictionary.py dictionary.zip backups/prepared-dictionary
+```
+
+Selected public dictionary sources, linked from the [KOReader dictionary documentation](https://github.com/koreader/koreader/wiki/Dictionary-support):
+
+- [WikDict English–Spanish](https://download.wikdict.com/dictionaries/stardict/wikdict-en-es.zip), under the [WikDict reuse terms](https://www.wikdict.com/page/download).
+- [reader.dict Spanish, without etymology](https://www.reader-dict.com/download/es). Keep dictionary metadata and attribution with the files.
+
+On Android, KOReader expects dictionaries under `/sdcard/koreader/data/dict/`. Dictionary files are not redistributed in this repository.
