@@ -26,6 +26,7 @@ Conversations remain in the plugin instance’s memory, not local history files.
 - Actual BNRV520/Android 4.4.2 call using KOReader’s LuaSocket/LuaSec runtime: a 262-byte Spanish answer was received and visibly displayed in the native KOReader text viewer. This was a real model response, not a fixture.
 - The app-private file was reread inside the app and its permissions were verified as `rw-------`. Initial provisioning used a one-use loopback socket through an ADB USB forward; the key never needed a shared-storage staging file. The temporary bridge and forwarding rule were removed afterward.
 - After closing and reopening KOReader, **Preguntar a IA** appeared in the normal highlight menu. An editable question about a selected word from the repository’s own EPUB fixture was submitted through the normal UI, and a real Spanish explanation was visibly displayed. This also verified the saved key across app restarts.
+- Final full readback confirmed that all six installed plugin files exactly match the published source, with no provisioning bridge left. Browser packages were absent, ADB remained unprivileged, and USB stay-awake was zero. The temporary host credential file was deleted after provisioning.
 - The Spanish offline dictionary also displayed a real definition via touch during that test.
 - Lua syntax checks and `tests/test_nookchat.lua` cover endpoint/header validation, context bounds, malformed replies, sanitized errors, and the actual HTTP request boundary (bearer header, no redirect, no retry).
 
