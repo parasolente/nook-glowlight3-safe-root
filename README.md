@@ -27,3 +27,18 @@ Changing `BNRV510` to `BNRV520` in upstream `rootnook.sh` changes its ADB select
 ## Publication policy
 
 Only reusable code, instructions, and non-identifying observations belong here. Device backups, serial numbers, partition dumps, account data, and ADB keys remain local. Each substantive improvement is committed separately.
+
+## Capture tool
+
+Requirements: Python 3.8+, host `adb`, an explicitly authorized **root** ADB shell, and the upstream BusyBox already present on the device. This tool neither obtains root nor installs anything on the NOOK. Keep the USB cable connected throughout acquisition.
+
+```sh
+python3 nook_backup.py --serial YOUR_DEVICE_SERIAL \
+  --busybox /data/local/tmp/.nookrooter/busybox \
+  --output backups/mmcblk0-pre-root.img.gz
+python3 -m unittest -v
+```
+
+The tool restricts capture to BNRV520, reads the device size, checks binary transport through old ADB, streams and validates gzip CRC and raw size, and records SHA-256 hashes. Interrupted or invalid captures retain a `.partial` extension. Existing outputs are not overwritten. A verified transfer proves stream integrity, not filesystem consistency or restorability. The manifest excludes the device serial.
+
+Tests cover binary byte preservation, long zero runs, truncation, corrupt CRC, wrong image size, and unexpected trailing data.
