@@ -24,6 +24,26 @@ eq(#books, 1)
 eq(books[1].md5, id)
 eq(books[1].title, "Example")
 
+package.loaded["socket.url"] = { absolute = function(base, destination)
+    if destination:sub(1, 1) == "/" then return "https://annas-archive.gl" .. destination end
+    return destination
+end }
+local redirected, requests = Client.new("test-ca.pem"), 0
+function redirected:request(address)
+    requests = requests + 1
+    if requests == 1 then return {code=302, headers={location="/search/?q=test"}} end
+    eq(address, "https://annas-archive.gl/search/?q=test")
+    return {code=200, headers={}, body="result"}
+end
+eq(redirected:public_request("https://annas-archive.gl", "https://annas-archive.gl/search?q=test").body, "result")
+requests = 0
+function redirected:request()
+    requests = requests + 1
+    return {code=302, headers={location="https://annas-archive.gl.attacker.org/search"}}
+end
+eq(redirected:public_request("https://annas-archive.gl", "https://annas-archive.gl/search"), nil)
+eq(requests, 1)
+
 -- Verify chain validation is requested and a bad DNS SAN fails before HTTP.
 local closed, verified = false, false
 local fake_socket = { settimeout = function() return 1 end, connect = function() return 1 end,
@@ -43,4 +63,4 @@ local connected = connection:connect("annas-archive.gl", 443)
 eq(connected, nil)
 eq(verified, true)
 eq(closed, true)
-print("NOOK Archive: URL, certificate hostname, parser and TLS adapter checks passed")
+print("NOOK Archive: URL, redirect, certificate hostname, parser and TLS adapter checks passed")

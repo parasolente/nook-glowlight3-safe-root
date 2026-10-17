@@ -121,17 +121,33 @@ function Client:request(address, sink)
     return { code = tonumber(code), headers = headers or {}, body = table.concat(chunks), bytes = bytes }
 end
 
+function Client:public_request(origin, address)
+    for _ = 1, 5 do
+        if address:sub(1, #origin + 1) ~= origin .. "/" then
+            return nil, "The search redirects outside the selected domain. Update the domain manually if needed."
+        end
+        local response, err = self:request(address)
+        if not response then return nil, err end
+        if not ({ [301] = true, [302] = true, [303] = true, [307] = true, [308] = true })[response.code] then
+            return response
+        end
+        if not response.headers.location then return nil, "The search redirect has no destination." end
+        address = require("socket.url").absolute(address, response.headers.location)
+    end
+    return nil, "Too many search redirects."
+end
+
 function Client:search(origin, query, extension, page)
     local url = origin .. "/search?q=" .. Client.encode(query)
         .. "&page=" .. tostring(page or 1)
     if extension ~= "all" then url = url .. "&ext=" .. extension end
-    local response, err = self:request(url)
+    local response, err = self:public_request(origin, url)
     if not response then return nil, err end
-    if response.code ~= 200 then return nil, "Search returned HTTP " .. tostring(response.code) .. "." end
     local lower = response.body:lower()
     if lower:find("/cdn%-cgi/challenge") or lower:find("cf%-chl%-") or lower:find("ddos%-guard") then
-        return nil, "The site requires browser verification; no results were downloaded."
+        return nil, "El sitio exige una verificación de navegador. La búsqueda directa no está disponible. Puedes usar un MD5 conocido; el token no se ha enviado."
     end
+    if response.code ~= 200 then return nil, "La búsqueda devolvió HTTP " .. tostring(response.code) .. ". El token no se ha enviado." end
     return Client.results(response.body, require("util").htmlEntitiesToUtf8)
 end
 

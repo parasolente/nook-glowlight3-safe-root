@@ -103,6 +103,21 @@ function Archive:connection_test()
     end)
 end
 
+function Archive:download_test()
+    self:run("Descargando EPUB de prueba sin token…", function()
+        if not util.directoryExists(self.options.directory) then util.makePath(self.options.directory) end
+        return self.client:download(
+            "https://raw.githubusercontent.com/parasolente/nook-glowlight3-safe-root/main/fixtures/nook-archive-test.epub",
+            self.options.directory, "e8bb100969e37eb2036eabaf0751de73", "epub")
+    end, function(path)
+        UIManager:show(ConfirmBox:new{
+            text = "Prueba completada. Archivo descargado y MD5 verificado.\nNo se usó el token ni una descarga de tu cuenta.",
+            ok_text = "Abrir EPUB", cancel_text = "Cerrar",
+            ok_callback = function() require("apps/reader/readerui"):showReader(path) end,
+        })
+    end)
+end
+
 function Archive:search(query, page)
     if not query or query:match("^%s*$") then return end
     self.last_query = query
@@ -192,6 +207,7 @@ function Archive:addToMainMenu(menu_items)
                     end, true)
                 end },
                 { text = "Comprobar conexión HTTPS", callback = function() self:connection_test() end },
+                { text = "Probar descarga sin token", callback = function() self:download_test() end },
                 { text = "Descargar con MD5 conocido", callback = function()
                     self:input("MD5 del enlace /md5/… de Anna’s Archive", "", function(id)
                         id = id:match("/md5/(%x+)") or id:gsub("%s", "")
