@@ -1,0 +1,10 @@
+Dictionary Test
+
+English: book.
+
+Español: libro.
+
+Press and hold "book" to test the English–Spanish dictionary.
+Press and hold "libro" to test Spanish definitions.
+
+Both lookups should work without a network connection.
