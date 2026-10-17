@@ -25,8 +25,9 @@ The original device backups and diagnostic files remain local. Their private pat
 
 ## Still required
 
-- Restore a stable USB connection for the final checks.
-- Confirm stock ADB permissions after restart and remove temporary backup/rooting files.
-- Restore the prior stay-awake setting (`0`), which was temporarily changed during transfers.
-- Confirm the selected home preference persists at the next normal start.
+- Confirm the selected home preference persists at the next normal start; Always has been selected by the user.
 - Complete browser configuration and actual access/download testing. No account token has been entered or stored by this project.
+
+## Reconnection and display follow-up
+
+USB and authorized ADB returned. Post-restart checks show stock shell permissions, completed boot, no temporary `/sbin` mount, and no `su` in the standard system locations. Temporary backup/root files and staged APKs were removed, and stay-awake was restored to `0`. KOReader's page mapping and full refresh every page were applied after preserving the original settings; the user confirmed the buttons work and refresh is much better. See `DISPLAY-AND-BUTTONS.md`.

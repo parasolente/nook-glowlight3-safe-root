@@ -44,8 +44,7 @@ Current release sources and SHA-256 hashes are recorded in `sources.json`. Dicti
 - Finish visual launch checks for the installed applications.
 - Confirm touch-based dictionary lookup and shared-storage access in the reader UI.
 - Test actual browser access; do not claim authenticated downloads work before testing.
-- Restart into stock ADB, remove temporary rooting files, and confirm the absence of permanent root.
-- Confirm the new launcher appears as the home interface while the original NOOK application remains accessible.
+- Confirm the Always home selection persists at the next normal start; the new launcher is already in use.
 
 Recovery restoration is untested. A live acquisition is not an atomic snapshot of writable `/data` or `/cache`.
 
@@ -64,3 +63,5 @@ During setup, `svc power stayon usb` temporarily changed the previous stay-awake
 ## New display and button report
 
 After choosing the new launcher persistently, the user reported ghosting on the physical panel, possibly across applications and noticed since the loading screen, plus different page-button behavior. USB still does not enumerate, so no live configuration change or fix is verified. `DISPLAY-AND-BUTTONS.md` records the upstream findings and pending comparison; `config/event_map.lua` is a prepared, unapplied KOReader-only mapping. This report must not be dismissed as the earlier screenshot artifact.
+
+Follow-up: USB/ADB returned. Stock shell UID 2000, completed boot, no temporary `/sbin` overlay, and no `su` at the standard system locations were confirmed. The temporary root/backup directory and staged APKs were removed, and stay-awake was restored to zero. KOReader selected the Nook/NTX driver. Its four-button mapping was installed, and both full-refresh intervals were set to one after backing up existing settings. Logs show full-screen mode-34 requests; the user confirmed the four buttons work and refresh is much better. The browser remains unfinished.

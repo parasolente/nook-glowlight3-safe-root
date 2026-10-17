@@ -4,7 +4,7 @@ Tools and documented observations for the Barnes & Noble NOOK GlowLight 3 (BNRV5
 
 ## Current status
 
-**Setup is in progress:** the loading-screen symptom cleared after unplugging USB and short power-button presses. The user reached the home chooser and selected Simple Ink Launcher with Always. Stable USB, temporary-file cleanup, and browser validation remain pending; see `RECOVERY-STATUS.md`.
+**Setup is in progress:** Simple Ink Launcher is selected with Always, USB/ADB access has returned, and stock shell permissions are confirmed. Temporary backup/root files were removed and the original stay-awake setting restored. All four page buttons now work in KOReader; the user confirmed that full refresh on every page substantially improves ghosting. Browser configuration and validation remain pending; see `RECOVERY-STATUS.md`.
 
 - USB debugging and authorized ADB confirmed on a BNRV520 running Android 4.4.2 / `53.0.112_user`.
 - The temporary `adbhack` stage from the upstream rooting project provided a root ADB shell while `/system` remained read-only.
@@ -96,3 +96,15 @@ python3 install_verified_apk.py app.apk --serial YOUR_DEVICE_SERIAL \
 ```
 
 The existing BusyBox is used only as a hash utility; this script does not obtain root. Tests confirm that a hash mismatch blocks the package manager and that a failure message cannot be mistaken for success.
+
+## KOReader page buttons and ghosting
+
+`config/event_map.lua` maps the four stock GlowLight 3 page buttons inside KOReader. After backing up any existing mapping and closing KOReader, install it at `/sdcard/koreader/settings/event_map.lua` and reopen the app. The user confirmed all four buttons work. This does not change system key layouts or other apps.
+
+`set_refresh_interval.py` prepares a copy of an existing KOReader settings file, changing only the day/night full-refresh intervals. It never executes Lua and refuses to overwrite an output file. Close KOReader before acquiring or replacing settings; keep the original local copy.
+
+```sh
+python3 set_refresh_interval.py settings.reader.before.lua settings.reader.prepared.lua --count 1
+```
+
+Deploy the prepared copy to `/sdcard/koreader/settings.reader.lua` while KOReader is stopped, then reopen it. An interval of one requests a full refresh on every eligible page update, increasing visible flashing. On this device, logs confirmed the Nook/NTX controller and full-screen mode-34 requests; the user confirmed much better ghosting. This setting does not control launcher/browser refresh. Restore the saved original file to undo the interval change, and remove or restore `event_map.lua` to undo the key mapping. See `DISPLAY-AND-BUTTONS.md` for observations and limits.

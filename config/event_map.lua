@@ -1,7 +1,7 @@
--- Candidate KOReader-only mapping for the stock GlowLight 3 key codes.
+-- KOReader-only mapping for the stock GlowLight 3 key codes.
 -- Target: /sdcard/koreader/settings/event_map.lua
 -- Back up an existing file first. Restart KOReader after installation.
--- Prepared from the upstream Android wiki; not yet tested on this device.
+-- All four buttons were confirmed working on this device after installation.
 return {
     [139] = "LPgBack",
     [140] = "LPgFwd",
