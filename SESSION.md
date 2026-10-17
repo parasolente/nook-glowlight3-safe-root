@@ -41,8 +41,8 @@ Current release sources and SHA-256 hashes are recorded in `sources.json`. Dicti
 
 ## Pending validation
 
-- Install and launch the selected applications.
-- Confirm offline dictionary lookup and shared-storage access.
+- Finish visual launch checks for the installed applications.
+- Confirm touch-based dictionary lookup and shared-storage access in the reader UI.
 - Test actual browser access; do not claim authenticated downloads work before testing.
 - Restart into stock ADB, remove temporary rooting files, and confirm the absence of permanent root.
 - Confirm the new launcher appears as the home interface while the original NOOK application remains accessible.
@@ -52,3 +52,11 @@ Recovery restoration is untested. A live acquisition is not an atomic snapshot o
 ## Filesystem diagnostic limitation
 
 A read-only `e2fsck -fn` of the extracted original system image reported unset padding bits at the end of an inode bitmap. The extracted image matches the device's original SHA-256, so this is not evidence of transfer corruption. The image and the device filesystem were left unchanged. A hash-verified acquisition must not be described as a tested restore or a filesystem with no diagnostic warnings.
+
+## Application installation and offline checks
+
+All three selected packages are now installed: `org.koreader.launcher`, `org.ds.simple.ink.launcher`, and `org.mozilla.firefox`. Intermittent ADB transfers required explicit rechecking of the installed package list. One browser installation was attempted before its transfer finished and Android rejected it as invalid; after completion and a full hash match, the same official APK installed successfully. `install_verified_apk.py` and its tests now guard the transfer/verification/install sequence.
+
+Both prepared dictionaries were copied into KOReader's dictionary directory. The included `libsdcv.so` engine, with Wi-Fi disabled, returned two English–Spanish entries for `book` and Spanish definitions including the exact entry `libro`. The root-shell diagnostic emitted a local configuration-directory warning before its JSON results; the lookups themselves succeeded. Touch-based UI lookup remains to be checked.
+
+During setup, `svc power stayon usb` temporarily changed the previous stay-awake setting of `0`; it must be restored before completion. The stock NOOK sleep overlay required physical wake-up and can cover an otherwise focused Android app.

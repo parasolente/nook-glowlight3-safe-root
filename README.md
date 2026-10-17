@@ -82,3 +82,15 @@ Selected public dictionary sources, linked from the [KOReader dictionary documen
 - [reader.dict Spanish, without etymology](https://www.reader-dict.com/download/es). Keep dictionary metadata and attribution with the files.
 
 On Android, KOReader expects dictionaries under `/sdcard/koreader/data/dict/`. Dictionary files are not redistributed in this repository.
+
+## Verified APK installation
+
+`install_verified_apk.py` waits for ADB's file transfer to finish, compares both local and on-device SHA-256 with the expected digest, requires explicit `Success` from Android's package manager, and checks that the expected package is installed. An old ADB connection can close without a useful install result; a zero command exit alone is not enough. Use the official digests recorded in `sources.json`.
+
+```sh
+python3 install_verified_apk.py app.apk --serial YOUR_DEVICE_SERIAL \
+  --sha256 EXPECTED_SHA256 --package org.example.app \
+  --busybox /data/local/tmp/.nookrooter/busybox
+```
+
+The existing BusyBox is used only as a hash utility; this script does not obtain root. Tests confirm that a hash mismatch blocks the package manager and that a failure message cannot be mistaken for success.
