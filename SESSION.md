@@ -60,3 +60,7 @@ All three selected packages are now installed: `org.koreader.launcher`, `org.ds.
 Both prepared dictionaries were copied into KOReader's dictionary directory. The included `libsdcv.so` engine, with Wi-Fi disabled, returned two English–Spanish entries for `book` and Spanish definitions including the exact entry `libro`. The root-shell diagnostic emitted a local configuration-directory warning before its JSON results; the lookups themselves succeeded. Touch-based UI lookup remains to be checked.
 
 During setup, `svc power stayon usb` temporarily changed the previous stay-awake setting of `0`; it must be restored before completion. The stock NOOK sleep overlay required physical wake-up and can cover an otherwise focused Android app.
+
+## New display and button report
+
+After choosing the new launcher persistently, the user reported ghosting on the physical panel, possibly across applications and noticed since the loading screen, plus different page-button behavior. USB still does not enumerate, so no live configuration change or fix is verified. `DISPLAY-AND-BUTTONS.md` records the upstream findings and pending comparison; `config/event_map.lua` is a prepared, unapplied KOReader-only mapping. This report must not be dismissed as the earlier screenshot artifact.
