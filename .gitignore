@@ -1,0 +1,11 @@
+backups/
+*.img
+*.img.*
+*.partial
+*.ab
+*.apk
+*.log
+__pycache__/
+*.pyc
+.env
+.adb*
