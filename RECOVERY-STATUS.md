@@ -1,4 +1,4 @@
-# Open recovery investigation
+# Boot-screen investigation and remaining checks
 
 The setup is not complete and must not be represented as a validated end-to-end recipe.
 
@@ -19,14 +19,14 @@ The cause has not been established. Do not infer that the system or boot image w
 
 ## Current conservative step
 
-One soft reset from the GlowLight 3 manufacturer manual has been requested: unplug USB, hold only power for ten seconds and release, then press power for two seconds to turn on. Result pending. This is not an instruction to enter or accept factory reset. Avoid repeated interrupted boots or undocumented model-specific button combinations.
+A manufacturer-documented soft reset was proposed, but the user did not need to complete it. After unplugging USB, a short power-button press changed the screen; a second press brought up the Android home chooser. The user then selected Simple Ink Launcher with Always, having used Just once earlier. No factory reset or image restoration was performed. The loading-screen symptom is cleared; the USB cause remains unconfirmed.
 
 The original device backups and diagnostic files remain local. Their private paths and device identifiers are intentionally not published.
 
 ## Still required
 
-- Restore a normal boot and a stable USB connection.
+- Restore a stable USB connection for the final checks.
 - Confirm stock ADB permissions after restart and remove temporary backup/rooting files.
 - Restore the prior stay-awake setting (`0`), which was temporarily changed during transfers.
-- Set the launcher as the preferred home interface.
+- Confirm the selected home preference persists at the next normal start.
 - Complete browser configuration and actual access/download testing. No account token has been entered or stored by this project.

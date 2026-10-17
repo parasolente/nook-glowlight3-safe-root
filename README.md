@@ -4,7 +4,7 @@ Tools and documented observations for the Barnes & Noble NOOK GlowLight 3 (BNRV5
 
 ## Current status
 
-**Setup is incomplete:** after a user-performed power cycle, the device remains on its loading screen and no longer enumerates over USB. Recovery diagnosis is in progress; see `RECOVERY-STATUS.md`.
+**Setup is in progress:** the loading-screen symptom cleared after unplugging USB and short power-button presses. The user reached the home chooser and selected Simple Ink Launcher with Always. Stable USB, temporary-file cleanup, and browser validation remain pending; see `RECOVERY-STATUS.md`.
 
 - USB debugging and authorized ADB confirmed on a BNRV520 running Android 4.4.2 / `53.0.112_user`.
 - The temporary `adbhack` stage from the upstream rooting project provided a root ADB shell while `/system` remained read-only.
