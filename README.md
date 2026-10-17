@@ -42,3 +42,28 @@ python3 -m unittest -v
 The tool restricts capture to BNRV520, reads the device size, checks binary transport through old ADB, streams and validates gzip CRC and raw size, and records SHA-256 hashes. Interrupted or invalid captures retain a `.partial` extension. Existing outputs are not overwritten. A verified transfer proves stream integrity, not filesystem consistency or restorability. The manifest excludes the device serial.
 
 Tests cover binary byte preservation, long zero runs, truncation, corrupt CRC, wrong image size, and unexpected trailing data.
+
+## Independent region verification
+
+`verify_regions.py` reads a local gzip image and compares selected byte ranges against SHA-256 hashes obtained separately from the physical device. It can extract matching regions to a new directory. It does not connect to ADB or write to a device.
+
+Create a **local** layout JSON using the actual device's partition starts and sizes from `/sys/block/mmcblk0/mmcblk0p*/{start,size}`. Multiply sector values by 512; do not copy offsets from a different model or assume that an extended partition is a filesystem. Obtain each expected hash independently while the original region is unchanged.
+
+```json
+{
+  "expected_raw_bytes": 7818182656,
+  "regions": [
+    {"name": "system", "offset": 54525952, "size": 402644992,
+     "sha256": "REPLACE_WITH_THE_INDEPENDENT_DEVICE_SHA256"}
+  ]
+}
+```
+
+The numeric example reflects one observed BNRV520; it is not a universal partition map. The placeholder is intentionally invalid.
+
+```sh
+python3 verify_regions.py backups/mmcblk0-pre-root.img.gz backups/layout.json \
+  --extract-dir backups/verified-regions
+```
+
+The verifier checks the gzip CRC, full raw length, every selected region's size and SHA-256, and returns the whole-image SHA-256. Compare that whole-image digest with the acquisition manifest too. Failed extractions keep `.partial` extensions. Tests also cover region boundaries spanning read chunks, mismatching hashes, invalid ranges, path traversal, and existing output directories.
