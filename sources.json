@@ -39,6 +39,19 @@
       "url": "https://www.reader-dict.com/file/es/dict-es-es-noetym.zip",
       "bytes": 9783364,
       "sha256": "868eda2a5f7ba1e693b6671e4737f5d233ea52797de3982c5c03cb54ac711b62"
+    },
+    {
+      "name": "Total Commander",
+      "version": "3.62d",
+      "package": "com.ghisler.android.TotalCommander",
+      "url": "https://raw.githubusercontent.com/chrisgch/tca/master/fdroid/repo/tcandroid-down362d-universal.apk",
+      "source_page": "https://www.ghisler.com/fdroid.htm",
+      "bytes": 5599020,
+      "sha256": "d918ccc0506f6ac3b72fb2cc4dc1eccb3f83eb873077d982a79054d8d65467e4",
+      "min_android_sdk": 8,
+      "repository_certificate_sha256": "3576596cecdd70488d61cfd90799a49b7ffd26a81a8fef1badec88d069fa72c1",
+      "apk_certificate_sha256": "e50eb216a57d5eb0b1e67802e783df7b587bdbdc379e3e296f89b49ed32f00fd",
+      "verification": "Official repository hash, matching pinned repository certificate, APK signer inspection, and full device readback SHA-256 before package installation."
     }
   ]
 }

@@ -35,3 +35,7 @@ The stock sleep screen can cover an otherwise focused app and sometimes requires
 Firefox failed with an EGL configuration error, including with a separate software-rendering test profile; that profile was deleted. The stock browser returned an SSL protocol error. Anonymous archive search was blocked during development. The user authorized an account token and direct account-session integration, which now works. Credentials remain app-private; cookies remain in memory; downloaded books and diagnostics remain local.
 
 The reusable scripts, configuration, plugin, tests, and documentation are published in English. Device serials, ADB keys, account data, raw storage, and downloaded books are excluded.
+
+## Total Commander installation
+
+At the user's request, Total Commander 3.62d was downloaded from the developer's official release repository. Its SHA-256 matched the index, the repository certificate matched the fingerprint linked from the developer's website, and the APK signer matched the index. A full readback of the staged device APK matched before installation. Android reported Success and the expected package was present. The app launched, the stock USB overlay was closed, and the existing Books/Downloads directory was listed. Explicitly selecting the Light theme fixed the initially pale text. A Downloads bookmark was added with the home-folder option. See [TOTAL-COMMANDER.md](TOTAL-COMMANDER.md).
